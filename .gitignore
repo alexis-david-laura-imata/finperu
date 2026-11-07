@@ -1,0 +1,17 @@
+# Entorno y cachés
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Datos del usuario (nunca se suben ni se borran al actualizar)
+datos_cache/
+salidas/
+plantillas/_fuente_curso/
+_analisis/
+config.local.json
+# Binarios y empaquetado
+instalador/bin/
+dist/
+*.finperu-respaldo-*
+instalador/python/
+instalacion.log

@@ -1,0 +1,74 @@
+# Reglas de cálculo del CPPC/WACC + EVA tal como se aplican en el curso
+# Metodología de referencia: curso universitario de Administración Financiera II (Perú)
+# Extraídas celda por celda de: excel MODELAMIENTO CPPC (Laive 2019-21),
+# Practica_FinancieraII_Finallll (1) (Laive 2023) y practicaII_final (Backus 2023).
+# Cada regla indica su evidencia. Los "parametros" son decisiones que variaron entre archivos.
+
+unidades: "miles de S/ (S/000), igual que los EEFF SMV"
+
+parametros:
+  tasa_impuesto: {default: 0.295, alternativas: [0.30], nota: "Laive 29.5%; Backus 30% (caso de práctica)"}
+  damodaran_vintage:
+    default: cierre_siguiente      # EF del año N -> archivo publicado en enero N+1 (betaemerg{N}.xls). Práctica Laive 2023: "se toma el 1/24"
+    alternativas: [disponible_al_cierre]   # EF del año N -> archivo publicado en enero N (betaemerg{N-1}.xls). Modelo de referencia 2021 usó betaemerg20
+  beta_columna: {default: "Unlevered beta", alternativas: ["Unlevered beta corrected for cash"]}
+  prima_promedio: {default: aritmetico, alternativas: [geometrico], nota: "PPT 9 menciona geometrico; todos los Excel usan aritmetico"}
+  estados: {default: consolidado, fallback: individual, nota: "Backus separado subestima ROIC (participación en subsidiarias fuera de UO)"}
+  inflacion_fuente: {default: bcrp_dic_dic, override: "dato provisto por el usuario (marcar como supuesto)"}
+
+entradas:
+  rf:
+    regla: "Treasury Daily Par Yield Curve, columna '10 yr', último día hábil del año N, /100"
+    fuente: "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rate-archives (par-yield-curve-rates-AAAA-AAAA.csv)"
+    evidencia: {2020: 0.0093, 2021: 0.0152, 2023: 0.0388}
+  riesgo_pais:
+    regla: "BCRP serie PN01129XM (EMBIG Perú, pbs, mensual), valor de diciembre del año N, /10000"
+    fuente: "https://estadisticas.bcrp.gob.pe/estadisticas/series/mensuales/resultados/PN01129XM/html"
+    api: "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01129XM/json/{N}-12/{N}-12/ing"
+    evidencia: {2020: 143, 2021: 174, 2023: 162}
+  prima_mercado:
+    regla: "histretSP.xls hoja 'Returns by year': AVERAGE(S&P 500 incl. dividendos, 1928..N) - AVERAGE(US T.Bond 10-year, 1928..N)"
+    fuente: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xls"
+    evidencia: {2019: 0.06426, 2020: 0.06429, 2021: 0.06711, 2023: 0.06799}
+  beta_desapalancada:
+    regla: "betaemerg{AA}.xls (Emerging Markets) hoja 'Industry Averages', fila de la industria, columna beta_columna"
+    fuente_archivo: "https://pages.stern.nyu.edu/~adamodar/pc/archives/betaemerg{AA}.xls"
+    fuente_actual: "https://pages.stern.nyu.edu/~adamodar/pc/datasets/betaemerg.xls"
+    industrias_usadas: {Laive: "Food Processing", Backus: "Beverage (Alcoholic)"}
+    evidencia: {betaemerg20_FoodProcessing: 0.7428, betaemerg23_FoodProcessing: 0.6142, betaemerg22_BeverageAlcoholic: 0.99}
+  inflacion:
+    evidencia_casos_practica: {2019: {pe: 0.019, us: 0.0238}, 2020: {pe: 0.0197, us: 0.0123}, 2021: {pe: 0.0643, us: 0.047}, 2023: {pe: 0.0341, us: 0.034}}
+    conflicto: "Backus 2023 usa pe=0.0324"
+  kd_tabla_bancos:
+    regla: "Nota 'Otros pasivos financieros' de los EEFF auditados: por instrumento (sobregiros, arrendamiento financiero, préstamos) y banco; tasa = promedio simple si es rango; peso = (corriente + no corriente)/total del grupo; Kd = suma ponderada por grupo y luego por total"
+    origen: "PDF EEFF (no está en datos abiertos SMV) -> extracción asistida + confirmación del usuario"
+    conversion_usd: "si la tasa es en US$: Fisher con inflaciones PE/US"
+
+calculos:
+  deuda_D: "Otros pasivos financieros corriente + no corriente (NO incluye pasivo por arrendamiento NIIF 16)"
+  patrimonio_E: "Total patrimonio (valor contable)"
+  pesos: {Wd: "D/(D+E)", We: "E/(D+E)"}
+  beta_apalancada: "βU * (1 + D/E * (1 - t))   # Hamada"
+  ke_usd: "Rf + βL * Prima"
+  ke_soles: "(1 + Ke_usd) * (1 + πPE) / (1 + πUS) - 1   # Fisher"
+  ke: "Ke_soles + Riesgo país   # RP se suma DESPUÉS de Fisher"
+  wacc: "Kd * (1 - t) * Wd + Ke * We"
+  nopat: "Utilidad operativa * (1 - t)"
+  capital_invertido: "D + E"
+  ci_promedio: "(CI_N + CI_{N-1}) / 2"
+  roic: "NOPAT / CI_promedio"
+  eva: "(ROIC - WACC) * CI_promedio"
+
+controles:
+  - "Activo total = Pasivo total + Patrimonio (tolerancia 1)"
+  - "Suma de pesos Kd por grupo = 1 y Wd + We = 1"
+  - "D del modelo = total de la nota de otros pasivos financieros"
+  - "Cifra del año N tomada de la columna N de la fuente (detecta error Backus UO 2022 vs 2023)"
+  - "Sin valores tecleados dentro de fórmulas; sin vínculos externos"
+
+casos_validacion:
+  laive_2021: {fuente: "excel MODELAMIENTO CPPC (3)", kd: 0.05053, wd: 0.30563, beta_l: 0.96963, ke: 0.11555, wacc: 0.09112}
+  laive_2020: {kd: 0.05490, wd: 0.22932, ke: 0.08114, wacc: 0.07141}
+  laive_2019: {kd: 0.04662, wd: 0.29894, ke: 0.08176, wacc: 0.06714}
+  laive_2023: {fuente: "Practica_FinancieraII_Finallll (1)", kd: 0.069986, wd: 0.32853, beta_u: 0.61, beta_l: 0.82041, prima: 0.06799, rf: 0.0388, rp: 0.0162, ke_usd: 0.094581, ke: 0.110887, wacc: 0.090667, nopat: 36861.63, ci_prom: 328672, roic: 0.112153, eva: 7061.95}
+  backus_2023: {fuente: "practicaII_final P3", wacc: 0.11764, nota: "UO usada 339,047 corresponde a 2022; 2023 = 419,559 (EEFF separados)"}

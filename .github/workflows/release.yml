@@ -1,0 +1,53 @@
+# Publica una versión: al subir un tag vX.Y.Z se arma FinPeru-vX.Y.Z.zip (con uv.exe) y se crea el Release.
+# Las instalaciones existentes lo detectan con motor/actualizador.py.
+name: Publicar versión
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verificar que VERSION coincide con el tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          v="$(cat VERSION | tr -d '[:space:]')"
+          [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "VERSION=$v no coincide con ${GITHUB_REF_NAME}"; exit 1; }
+
+      - name: Incluir uv.exe para Windows (instalador sin Python previo)
+        run: |
+          mkdir -p instalador/bin /tmp/uv
+          curl -sSL -o /tmp/uv.zip https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip
+          unzip -o /tmp/uv.zip -d /tmp/uv
+          find /tmp/uv -name 'uv.exe' -exec cp {} instalador/bin/ \;
+          ls -la instalador/bin
+
+      - name: Armar el paquete
+        run: python scripts/empaquetar.py
+
+      - name: Notas de la versión (desde CHANGELOG.md)
+        run: |
+          v="$(cat VERSION | tr -d '[:space:]')"
+          awk -v v="## $v" 'index($0, v)==1{f=1; next} /^## /{f=0} f' CHANGELOG.md > notas.md
+          printf '\n---\n**Instalar:** descarga `FinPeru-v%s.zip`, descomprímelo y haz doble clic en `Instalar FinPeru.bat`.\n**Actualizar:** desde el panel o con `Actualizar FinPeru.bat`.\n' "$v" >> notas.md
+          cat notas.md
+
+      - name: Crear el Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="$(cat VERSION | tr -d '[:space:]')"
+          gh release create "v$v" "dist/FinPeru-v$v.zip" --title "FinPerú $v" --notes-file notas.md \
+            || gh release upload "v$v" "dist/FinPeru-v$v.zip" --clobber

@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinPerú — Modelos financieros auditables</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="saltar" href="#principal">Saltar al contenido</a>
+
+  <header class="cabecera">
+    <div class="marca">
+      <span class="marca__logo" aria-hidden="true">₣</span>
+      <div>
+        <h1 class="marca__nombre">FinPerú</h1>
+        <p class="marca__lema">WACC y EVA auditables de empresas peruanas</p>
+      </div>
+    </div>
+    <p id="estado-sistema" class="chip" role="status">Comprobando…</p>
+  </header>
+
+  <div id="aviso-actualizacion" class="banda-actualizacion" role="status" hidden>
+    <span id="texto-actualizacion"></span>
+    <button type="button" id="btn-actualizar" class="boton boton--principal">Actualizar ahora</button>
+  </div>
+
+  <div class="disposicion">
+    <main id="principal" class="formulario" tabindex="-1">
+      <form id="form-modelo" novalidate>
+
+        <!-- 1. Empresa -->
+        <section class="tarjeta" aria-labelledby="t-empresa">
+          <h2 id="t-empresa" class="tarjeta__titulo"><span class="paso">1</span> Empresa</h2>
+          <label for="buscar-empresa">Busca por nombre, RUC o código SMV</label>
+          <div class="combo">
+            <input id="buscar-empresa" type="search" autocomplete="off" placeholder="Ej.: Laive, Alicorp, 20100095450"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lista-empresas"
+                   aria-describedby="ayuda-empresa">
+            <ul id="lista-empresas" class="combo__lista" role="listbox" aria-label="Empresas encontradas" hidden></ul>
+          </div>
+          <p id="ayuda-empresa" class="ayuda">Usa las flechas ↑ ↓ y Enter para elegir.</p>
+          <div id="empresa-elegida" class="elegida" hidden></div>
+        </section>
+
+        <!-- 2. Ejercicio e industria -->
+        <section class="tarjeta" aria-labelledby="t-ejercicio">
+          <h2 id="t-ejercicio" class="tarjeta__titulo"><span class="paso">2</span> Ejercicio e industria</h2>
+          <div class="fila">
+            <div class="campo">
+              <label for="anio">Año del ejercicio</label>
+              <select id="anio" required></select>
+            </div>
+            <div class="campo campo--ancho">
+              <label for="industria">Industria comparable (Damodaran)</label>
+              <input id="industria" list="lista-industrias" required aria-describedby="ayuda-industria">
+              <datalist id="lista-industrias"></datalist>
+              <p id="ayuda-industria" class="ayuda">Se sugiere según la actividad (CIIU) de la empresa. Puedes cambiarla.</p>
+            </div>
+          </div>
+          <button type="button" id="btn-vista-previa" class="boton boton--secundario">Ver cifras de la SMV</button>
+          <div id="vista-previa" class="vista-previa" aria-live="polite"></div>
+        </section>
+
+        <!-- 3. Costo de la deuda -->
+        <section class="tarjeta" aria-labelledby="t-kd">
+          <h2 id="t-kd" class="tarjeta__titulo"><span class="paso">3</span> Costo de la deuda (Kd)</h2>
+          <fieldset class="opciones">
+            <legend>¿Cómo calcular el Kd?</legend>
+            <label class="opcion"><input type="radio" name="kd-modo" value="pdf" checked>
+              Automático desde el PDF auditado <span class="ayuda">busca el PDF en la SMV, lee la nota de deuda y usa el método del curso (si no cuadra, usa el aproximado)</span></label>
+            <label class="opcion"><input type="radio" name="kd-modo" value="aprox">
+              Aproximado <span class="ayuda">gastos financieros ÷ deuda promedio (rápido, con aviso)</span></label>
+            <label class="opcion"><input type="radio" name="kd-modo" value="tabla">
+              Tabla de la nota de deuda <span class="ayuda">método del curso: tasa por banco ponderada por saldo</span></label>
+            <label class="opcion"><input type="radio" name="kd-modo" value="unico">
+              Un solo valor <span class="ayuda">si ya lo conoces</span></label>
+          </fieldset>
+
+          <div id="kd-unico" class="campo" hidden>
+            <label for="kd-valor">Kd (%)</label>
+            <input id="kd-valor" type="number" step="0.01" min="0" max="100" inputmode="decimal">
+          </div>
+
+          <div id="kd-tabla" hidden>
+            <div class="kd-pdf">
+              <p class="ayuda">Llena la tabla automáticamente desde la nota de deuda del PDF auditado:</p>
+              <div class="fila">
+                <button type="button" id="btn-kd-pdf" class="boton boton--principal">Leer la nota desde la SMV</button>
+                <label class="opcion"><input type="checkbox" id="kd-pdf-visible" checked> Mostrar el navegador</label>
+              </div>
+              <div class="campo">
+                <label for="kd-pdf-archivo">…o sube el PDF de los estados auditados</label>
+                <input id="kd-pdf-archivo" type="file" accept="application/pdf">
+              </div>
+              <div id="kd-pdf-resultado" aria-live="polite"></div>
+            </div>
+            <div class="tabla-desplazable" role="region" aria-label="Tabla de deuda por banco" tabindex="0">
+              <table class="tabla">
+                <caption class="sr-only">Líneas de deuda de la nota "Otros pasivos financieros"</caption>
+                <thead><tr>
+                  <th scope="col">Tipo</th><th scope="col">Entidad</th><th scope="col">Tasa mín. %</th>
+                  <th scope="col">Tasa máx. %</th><th scope="col">Moneda</th><th scope="col">Corriente</th>
+                  <th scope="col">No corriente</th><th scope="col"><span class="sr-only">Acciones</span></th>
+                </tr></thead>
+                <tbody id="kd-filas"></tbody>
+              </table>
+            </div>
+            <div class="fila fila--entre">
+              <button type="button" id="btn-kd-agregar" class="boton boton--secundario">+ Agregar línea</button>
+              <p id="kd-cuadre" class="ayuda" aria-live="polite"></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Opciones avanzadas -->
+        <section class="tarjeta" aria-labelledby="t-avanzado">
+          <h2 id="t-avanzado" class="tarjeta__titulo"><span class="paso">4</span> Opciones (opcional)</h2>
+          <details>
+            <summary>Parámetros metodológicos</summary>
+            <div class="rejilla">
+              <div class="campo"><label for="p-tasa">Impuesto a la renta (%)</label>
+                <input id="p-tasa" type="number" step="0.1" value="29.5"></div>
+              <div class="campo"><label for="p-vintage">Año del archivo de betas</label>
+                <select id="p-vintage">
+                  <option value="cierre_siguiente">Datos del año evaluado (recomendado)</option>
+                  <option value="disponible_al_cierre">Datos del año anterior (lo disponible al cierre)</option>
+                </select></div>
+              <div class="campo"><label for="p-columna">Columna de beta</label>
+                <select id="p-columna">
+                  <option>Unlevered beta</option><option>Unlevered beta corrected for cash</option>
+                </select></div>
+              <div class="campo"><label for="p-prima">Promedio de la prima</label>
+                <select id="p-prima"><option value="aritmetico">Aritmético</option>
+                  <option value="geometrico">Geométrico</option></select></div>
+              <div class="campo"><label for="p-region">Región de betas</label>
+                <select id="p-region"><option value="emerg">Mercados emergentes</option>
+                  <option value="us">EE.UU.</option><option value="global">Global</option></select></div>
+            </div>
+          </details>
+          <details>
+            <summary>Datos del docente (sobrescribir fuentes)</summary>
+            <p class="ayuda">Déjalos vacíos para usar las fuentes oficiales. Lo que llenes queda marcado como "dato del usuario".</p>
+            <div class="rejilla">
+              <div class="campo"><label for="s-inflacion_pe">Inflación Perú (%)</label><input id="s-inflacion_pe" data-sob="inflacion_pe" type="number" step="0.01"></div>
+              <div class="campo"><label for="s-inflacion_us">Inflación EE.UU. (%)</label><input id="s-inflacion_us" data-sob="inflacion_us" type="number" step="0.01"></div>
+              <div class="campo"><label for="s-riesgo_pais">Riesgo país (%)</label><input id="s-riesgo_pais" data-sob="riesgo_pais" type="number" step="0.01"></div>
+              <div class="campo"><label for="s-rf">Tasa libre de riesgo (%)</label><input id="s-rf" data-sob="rf" type="number" step="0.01"></div>
+              <div class="campo"><label for="s-prima">Prima de mercado (%)</label><input id="s-prima" data-sob="prima" type="number" step="0.0001"></div>
+              <div class="campo"><label for="s-beta_u">Beta desapalancada</label><input id="s-beta_u" data-sob="beta_u" data-pct="no" type="number" step="0.0001"></div>
+            </div>
+          </details>
+        </section>
+
+        <!-- 5. Construir -->
+        <section class="tarjeta" aria-labelledby="t-construir">
+          <h2 id="t-construir" class="tarjeta__titulo"><span class="paso">5</span> Construir el modelo</h2>
+          <fieldset class="opciones">
+            <legend>¿Qué quieres ver mientras se construye?</legend>
+            <div class="fila presets" role="group" aria-label="Combinaciones rápidas">
+              <button type="button" class="boton boton--secundario" data-preset="todo">Todo el proceso</button>
+              <button type="button" class="boton boton--secundario" data-preset="excel">Solo el Excel</button>
+              <button type="button" class="boton boton--secundario" data-preset="descargas">Solo las descargas</button>
+              <button type="button" class="boton boton--secundario" data-preset="calculos">Solo los cálculos</button>
+              <button type="button" class="boton boton--secundario" data-preset="nada">Nada (rápido)</button>
+            </div>
+            <label class="opcion"><input type="checkbox" id="ver-navegador"> El navegador recorriendo la SMV, Damodaran, el Tesoro y el BCRP (descargas)</label>
+            <label class="opcion"><input type="checkbox" id="ver-excel" checked> El Excel construyéndose celda por celda</label>
+            <label class="opcion"><input type="checkbox" id="ver-calculos"> Los cálculos en Python, paso a paso (en el panel "En vivo")</label>
+          </fieldset>
+          <div class="campo">
+            <label for="velocidad">Velocidad de la animación: <output id="velocidad-valor" for="velocidad">1×</output></label>
+            <input id="velocidad" type="range" min="0" max="3" step="0.5" value="1" aria-describedby="ayuda-velocidad">
+            <p id="ayuda-velocidad" class="ayuda">0 = sin pausas · 1 = normal · 2–3 = lento, para presentar</p>
+          </div>
+          <button type="submit" id="btn-generar" class="boton boton--principal">Generar modelo</button>
+          <p id="error-form" class="error" role="alert"></p>
+        </section>
+      </form>
+
+      <!-- Resultados -->
+      <section id="resultados" class="tarjeta" aria-labelledby="t-resultados" hidden tabindex="-1">
+        <h2 id="t-resultados" class="tarjeta__titulo">Resultados</h2>
+        <div id="kpis" class="kpis"></div>
+        <h3>Controles de auditoría</h3>
+        <ul id="controles" class="controles"></ul>
+        <div id="avisos"></div>
+        <div class="fila">
+          <button type="button" id="btn-abrir-excel" class="boton boton--principal">Abrir Excel</button>
+          <button type="button" id="btn-abrir-carpeta" class="boton boton--secundario">Abrir carpeta (evidencias)</button>
+          <a id="btn-descargar" class="boton boton--secundario" href="#" download>Descargar .xlsx</a>
+        </div>
+      </section>
+
+      <!-- Historial -->
+      <section class="tarjeta" aria-labelledby="t-historial">
+        <h2 id="t-historial" class="tarjeta__titulo">Modelos generados</h2>
+        <div class="tabla-desplazable" role="region" aria-label="Historial de modelos" tabindex="0">
+          <table class="tabla">
+            <thead><tr><th scope="col">Empresa</th><th scope="col">Año</th><th scope="col">WACC</th>
+              <th scope="col">EVA (miles S/)</th><th scope="col">Controles</th><th scope="col">Generado</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th></tr></thead>
+            <tbody id="historial"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Registro en vivo -->
+    <aside class="registro" aria-labelledby="t-registro">
+      <h2 id="t-registro" class="registro__titulo">En vivo</h2>
+      <p id="paso-actual" class="registro__paso" aria-live="polite">Esperando…</p>
+      <div class="barra" role="progressbar" aria-labelledby="paso-actual" aria-valuemin="0" aria-valuemax="10"
+           aria-valuenow="0"><div id="barra-relleno" class="barra__relleno"></div></div>
+      <ol id="registro" class="registro__lista" role="log" aria-live="polite" aria-relevant="additions"></ol>
+    </aside>
+  </div>
+
+  <template id="tpl-fila-kd">
+    <tr>
+      <td><select data-k="tipo" aria-label="Tipo de deuda">
+        <option>SOBREGIROS</option><option>ARRENDAMIENTO FINANCIERO</option>
+        <option selected>PRESTAMOS BANCARIOS</option><option>BONOS</option><option>OTROS</option></select></td>
+      <td><input data-k="entidad" aria-label="Entidad" placeholder="Banco"></td>
+      <td><input data-k="tasa_min" type="number" step="0.01" aria-label="Tasa mínima %"></td>
+      <td><input data-k="tasa_max" type="number" step="0.01" aria-label="Tasa máxima % (opcional)"></td>
+      <td><input data-k="moneda" value="S/" aria-label="Moneda" size="5"></td>
+      <td><input data-k="corriente" type="number" step="1" value="0" aria-label="Saldo corriente"></td>
+      <td><input data-k="no_corriente" type="number" step="1" value="0" aria-label="Saldo no corriente"></td>
+      <td><button type="button" class="boton boton--icono" data-quitar aria-label="Quitar línea">✕</button></td>
+    </tr>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
