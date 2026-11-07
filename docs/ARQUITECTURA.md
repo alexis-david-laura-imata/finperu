@@ -56,14 +56,13 @@
 7. Sube `VERSION`, anota en `CHANGELOG.md` y publica (ver abajo).
 
 ## Publicar una versión
-```bash
-# 1. cambia VERSION (ej. 0.3.0) y CHANGELOG.md
-git commit -am "FinPerú 0.3.0"
-git tag v0.3.0
-git push && git push --tags
-```
-La acción `.github/workflows/release.yml` arma `FinPeru-v0.3.0.zip` (con `uv.exe` incluido) y crea el Release.
+1. Cambia `VERSION` (ej. `0.3.0`) y agrega la sección `## 0.3.0` en `CHANGELOG.md`.
+2. Sube el cambio a `main` (`git commit -am "FinPerú 0.3.0" && git push`).
+
+La acción `.github/workflows/release.yml` detecta el cambio de `VERSION`, arma `FinPeru-v0.3.0.zip`
+(con `uv.exe` incluido), crea el tag `v0.3.0` y el Release con las notas del CHANGELOG.
 Las instalaciones existentes verán el aviso de actualización en el panel.
+(También funciona subiendo un tag `v0.3.0` o con "Run workflow" en la pestaña Actions.)
 
 Para armar el zip localmente: `python scripts/empaquetar.py` → `dist/FinPeru-vX.Y.Z.zip`.
 

@@ -1,9 +1,12 @@
-# Publica una versión: al subir un tag vX.Y.Z se arma FinPeru-vX.Y.Z.zip (con uv.exe) y se crea el Release.
-# Las instalaciones existentes lo detectan con motor/actualizador.py.
+# Publica una versión. Basta con cambiar el archivo VERSION y subirlo a main (o subir un tag vX.Y.Z):
+# se arma FinPeru-vX.Y.Z.zip (con uv.exe), se crea el tag y el Release.
+# Si el Release de esa versión ya existe, no hace nada. Las instalaciones lo detectan con motor/actualizador.py.
 name: Publicar versión
 
 on:
   push:
+    branches: [main]
+    paths: ["VERSION", ".github/workflows/release.yml"]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -16,17 +19,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: ¿Ya existe el Release de esta versión?
+        id: existe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="$(cat VERSION | tr -d '[:space:]')"
+          if gh release view "v$v" >/dev/null 2>&1; then echo "si=1" >> "$GITHUB_OUTPUT"; echo "v$v ya publicado"; fi
+
       - uses: actions/setup-python@v5
+        if: steps.existe.outputs.si != '1'
         with:
           python-version: "3.12"
 
       - name: Verificar que VERSION coincide con el tag
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.existe.outputs.si != '1' && startsWith(github.ref, 'refs/tags/')
         run: |
           v="$(cat VERSION | tr -d '[:space:]')"
           [ "v$v" = "${GITHUB_REF_NAME}" ] || { echo "VERSION=$v no coincide con ${GITHUB_REF_NAME}"; exit 1; }
 
       - name: Incluir uv.exe para Windows (instalador sin Python previo)
+        if: steps.existe.outputs.si != '1'
         run: |
           mkdir -p instalador/bin /tmp/uv
           curl -sSL -o /tmp/uv.zip https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip
@@ -35,9 +48,11 @@ jobs:
           ls -la instalador/bin
 
       - name: Armar el paquete
+        if: steps.existe.outputs.si != '1'
         run: python scripts/empaquetar.py
 
       - name: Notas de la versión (desde CHANGELOG.md)
+        if: steps.existe.outputs.si != '1'
         run: |
           v="$(cat VERSION | tr -d '[:space:]')"
           awk -v v="## $v" 'index($0, v)==1{f=1; next} /^## /{f=0} f' CHANGELOG.md > notas.md
@@ -45,9 +60,10 @@ jobs:
           cat notas.md
 
       - name: Crear el Release
+        if: steps.existe.outputs.si != '1'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           v="$(cat VERSION | tr -d '[:space:]')"
-          gh release create "v$v" "dist/FinPeru-v$v.zip" --title "FinPerú $v" --notes-file notas.md \
+          gh release create "v$v" "dist/FinPeru-v$v.zip" --target "${GITHUB_SHA}" --title "FinPerú $v" --notes-file notas.md \
             || gh release upload "v$v" "dist/FinPeru-v$v.zip" --clobber
