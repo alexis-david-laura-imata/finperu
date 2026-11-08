@@ -7,9 +7,13 @@ Dos vías, en este orden:
    actualiza cada mes. Se usa si la SMV no responde.
    Atribución requerida (ODbL): datos de la SMV; base derivada smv-eeff.
 
-Cuentas del plan "D" (empresas en general) que usa la metodología del curso:
-  1D0309 Otros pasivos financieros (corriente)     1D0401 Otros pasivos financieros (no corriente)
-  1D07ST Total patrimonio                           2D03ST Ganancia (pérdida) operativa
+La SMV usa un plan de cuentas distinto según el tipo de empresa (2.º carácter del código):
+  D  empresas en general (la metodología del curso):  1D0309 + 1D0401 otros pasivos financieros,
+     1D07ST patrimonio, 2D03ST ganancia operativa
+  F  bancos, financieras y cajas (p.ej. BBVA, BCP): 1F2704 + 1F3002 adeudos y obligaciones financieras,
+     1F3306 patrimonio, 2F2801 resultado de operación
+  E  aseguradoras · A  AFP · I  agentes de intermediación · V  instituciones de compensación/bolsa
+Si una cuenta no está en el mapa del plan, se busca por su descripción.
 """
 from __future__ import annotations
 
@@ -33,7 +37,8 @@ OPERACIONES = {"BG": "obtener_BalanceGeneral", "ER": "obtener_GanciaPerdida",
 ESPEJO = "https://raw.githubusercontent.com/AtlasLedger/smv-eeff/main/data"
 CARPETA = config.CACHE / "smv"
 
-# Conceptos clave (plan D) -> cuentas SMV que lo componen
+# Conceptos clave -> cuentas SMV que lo componen, por plan de cuentas.
+# Una lista de códigos se suma; una lista de listas son alternativas (se usa la primera presente).
 CONCEPTOS_D = {
     "efectivo": ["1D0109"],
     "activo_corriente": ["1D01ST"],
@@ -53,6 +58,87 @@ CONCEPTOS_D = {
     "impuesto_renta": ["2D0502"],
     "utilidad_neta": ["2D07ST"],
 }
+CONCEPTOS_F = {   # sistema financiero: los depósitos del público son pasivo operativo, no deuda financiera
+    "efectivo": ["1F0101"],
+    "activo_corriente": ["1F01ST"],
+    "activo_total": ["1F2001"],
+    # adeudos y obligaciones financieras: el consolidado separa corriente/no corriente; el individual trae
+    # un solo total (1F2401), que se toma como corriente para no duplicar.
+    "otros_pasivos_financieros_cp": [["1F2704"], ["1F2401"]],
+    "pasivo_corriente": ["1F2902"],
+    "otros_pasivos_financieros_lp": [["1F3002"]],
+    "pasivo_total": ["1F3101"],
+    "patrimonio_total": ["1F3306"],
+    "pasivo_y_patrimonio": ["1F3307"],
+    "ingresos": [["2F01ST"], ["2F0101"]],                # alternativas: consolidado / individual
+    "costo_ventas": [["2F03ST"], ["2F0301"]],
+    "utilidad_bruta": ["2F2301"],
+    "utilidad_operativa": ["2F2801"],                    # resultado de operación
+    "gastos_financieros": ["2F0301"],                    # gastos por intereses (costo de fondeo)
+    "utilidad_antes_impuestos": [["2F2809"], ["2F1302"]],
+    "impuesto_renta": ["2F1403"],
+    "utilidad_neta": ["2F1901"],
+    # pasivos que pagan intereses (para el Kd aproximado = costo de fondeo)
+    "pasivos_con_costo": [["1F2101", "1F2301", "1F2703", "1F2704", "1F3002"], ["1F2101", "1F2301", "1F2401"]],
+    # intereses pagados por los adeudos y obligaciones (solo en el estado individual)
+    "intereses_deuda": [["2F0404"]],
+}
+CONCEPTOS_E = {   # aseguradoras
+    "efectivo": ["1E0101"], "activo_corriente": ["1E01ST"], "activo_total": ["1E02ST"],
+    "otros_pasivos_financieros_cp": ["1E0310"], "pasivo_corriente": ["1E0309"],
+    "otros_pasivos_financieros_lp": ["1E0401"], "pasivo_total": ["1E0501"], "patrimonio_total": ["1E0901"],
+    "pasivo_y_patrimonio": ["1E1001"], "ingresos": ["2E0201"], "utilidad_operativa": [["2E1501"], ["2E1508"]],
+    "gastos_financieros": ["2E1202"], "utilidad_antes_impuestos": ["2E1509"], "impuesto_renta": ["2E1602"],
+    "utilidad_neta": ["2E2101"],
+}
+CONCEPTOS_A = {   # AFP
+    "efectivo": ["1A0109"], "activo_corriente": ["1A01ST"], "activo_total": ["1A020T"],
+    "otros_pasivos_financieros_cp": ["1A0306"], "pasivo_corriente": ["1A03ST"],
+    "otros_pasivos_financieros_lp": [], "pasivo_total": ["1A040T"], "patrimonio_total": ["1A07ST"],
+    "pasivo_y_patrimonio": ["1A070T"], "ingresos": ["2A01ST"], "utilidad_operativa": ["2A03ST"],
+    "gastos_financieros": ["2A0402"], "utilidad_antes_impuestos": ["2A08ST"], "impuesto_renta": ["2A0502"],
+    "utilidad_neta": ["2A07ST"],
+}
+CONCEPTOS_I = {   # sociedades agentes de bolsa / intermediación
+    "activo_corriente": ["1I1071"], "activo_total": ["1I1131"], "otros_pasivos_financieros_cp": ["1I1431"],
+    "pasivo_corriente": ["1I1461"], "otros_pasivos_financieros_lp": ["1I1470"], "pasivo_total": ["1I1491"],
+    "patrimonio_total": ["1I1551"], "pasivo_y_patrimonio": ["1I1552"], "ingresos": ["2I2031"],
+    "utilidad_operativa": ["2I2071"], "gastos_financieros": ["2I2090"], "utilidad_antes_impuestos": ["2I2121"],
+    "impuesto_renta": ["2I2140"], "utilidad_neta": ["2I2161"],
+}
+CONCEPTOS_V = {   # instituciones de compensación y bolsa
+    "activo_corriente": ["1V01ST"], "activo_total": ["1V020T"], "otros_pasivos_financieros_cp": ["1V0309"],
+    "pasivo_corriente": ["1V03ST"], "otros_pasivos_financieros_lp": ["1V0401"], "pasivo_total": ["1V040T"],
+    "patrimonio_total": ["1V07ST"], "pasivo_y_patrimonio": ["1V070T"], "ingresos": ["2V01ST"],
+    "utilidad_operativa": ["2V03ST"], "gastos_financieros": ["2V0402"], "utilidad_antes_impuestos": ["2V04ST"],
+    "impuesto_renta": ["2V0502"], "utilidad_neta": ["2V07ST"],
+}
+CONCEPTOS_POR_PLAN = {"D": CONCEPTOS_D, "F": CONCEPTOS_F, "E": CONCEPTOS_E, "A": CONCEPTOS_A,
+                      "I": CONCEPTOS_I, "V": CONCEPTOS_V}
+NOMBRE_PLAN = {"D": "empresas en general", "F": "sistema financiero (bancos, financieras, cajas)",
+               "E": "empresas de seguros", "A": "AFP", "I": "agentes de intermediación",
+               "V": "instituciones de compensación y bolsa"}
+# Respaldo por descripción (plan desconocido o cuenta ausente). Prefijo 1 = balance, 2 = resultados.
+DESCRIPCIONES = {
+    "efectivo": ("1", r"^(EFECTIVO Y EQUIVALENTES?|CAJA Y BANCOS|DISPONIBLES?)\b"),
+    "activo_corriente": ("1", r"^TOTAL (DE )?ACTIVOS? CORRIENTES?$"),
+    "activo_total": ("1", r"^TOTAL (DE |DEL )?ACTIVOS?$"),
+    "otros_pasivos_financieros_cp": ("1", r"^(OTROS PASIVOS FINANCIEROS|OBLIGACIONES FINANCIERAS|ADEUDAD?OS Y OBLIGACIONES FINANCIERAS)"),
+    "pasivo_corriente": ("1", r"^TOTAL (DE )?PASIVOS? CORRIENTES?$"),
+    "otros_pasivos_financieros_lp": ("1", r"^(OTROS PASIVOS FINANCIEROS|OBLIGACIONES FINANCIERAS|ADEUDAD?OS Y OBLIGACIONES FINANCIERAS)"),
+    "pasivo_total": ("1", r"^TOTAL (DE |DEL )?PASIVOS?$"),
+    "patrimonio_total": ("1", r"^TOTAL (DE |DEL )?PATRIMONIO( NETO)?$"),
+    "pasivo_y_patrimonio": ("1", r"^TOTAL (DE |DEL )?PASIVOS? Y PATRIMONIO"),
+    "ingresos": ("2", r"^(TOTAL DE )?INGRESOS (DE ACTIVIDADES ORDINARIAS|BRUTOS|OPERACIONALES)"),
+    "utilidad_operativa": ("2", r"^(GANANCIA|UTILIDAD|RESULTADO)( \(?PERDIDA\)?)? (OPERATIVA|DE OPERACION|POR ACTIVIDADES DE OPERACION)$"),
+    "gastos_financieros": ("2", r"^GASTOS FINANCIEROS$"),
+    "utilidad_antes_impuestos": ("2", r"^(RESULTADO|UTILIDAD|GANANCIA).*ANTES (DEL? )?IMPUESTO"),
+    "impuesto_renta": ("2", r"^(GASTO POR )?IMPUESTO A LAS? (GANANCIAS|RENTA)"),
+    "utilidad_neta": ("2", r"^(RESULTADO|UTILIDAD|GANANCIA)( \(?PERDIDA\)?)? NET[OA] DEL EJERCICIO$"),
+}
+# Si estos conceptos no existen, la deuda vale 0 (empresa sin deuda financiera) en lugar de fallar.
+CONCEPTOS_OPCIONALES_CERO = {"otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp", "gastos_financieros",
+                             "intereses_deuda"}
 
 
 def _norm(t: str) -> str:
@@ -204,22 +290,79 @@ def _ordenar(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values(["estado", "orden"]).reset_index(drop=True)
 
 
-def conceptos(df: pd.DataFrame, comparativo: bool = False) -> dict[str, float]:
-    """Extrae los conceptos clave (plan D) de un DataFrame devuelto por `estados`."""
+def plan_de_cuentas(df: pd.DataFrame) -> str:
+    """Letra del plan de cuentas SMV (2.º carácter del código más frecuente): D, F, E, A, I, V…"""
+    letras = df["cuenta"].astype(str).str[1]
+    return letras.mode().iat[0] if len(letras) else "D"
+
+
+def cuentas_concepto(df: pd.DataFrame, concepto: str) -> list[str]:
+    """Cuentas del DataFrame que componen el concepto, según el plan de cuentas (o por descripción)."""
+    plan = plan_de_cuentas(df)
+    presentes = set(df["cuenta"].astype(str))
+    mapa = CONCEPTOS_POR_PLAN.get(plan, {})
+    if concepto in mapa:
+        opciones = mapa[concepto]
+        if not opciones:
+            return []
+        if not isinstance(opciones[0], list):
+            opciones = [opciones]
+        for alt in opciones:
+            ctas = [c for c in alt if c in presentes]
+            if ctas:
+                return ctas
+        return []          # plan conocido: si no está la cuenta, no se adivina por descripción
+    if concepto not in DESCRIPCIONES:
+        return []
+    prefijo, patron = DESCRIPCIONES[concepto]
+    import re
+    rx = re.compile(patron)
+    cand = [str(r.cuenta) for r in df.itertuples()
+            if str(r.cuenta).startswith(prefijo) and "descripcion" in df and rx.search(_norm(r.descripcion))]
+    if concepto.endswith("_cp"):
+        cand = [c for c in cand if c[2:4] < _ultimo_codigo_corriente(df)]
+    elif concepto.endswith("_lp"):
+        cand = [c for c in cand if c[2:4] >= _ultimo_codigo_corriente(df)]
+    return cand[:1]
+
+
+def _ultimo_codigo_corriente(df: pd.DataFrame) -> str:
+    """Grupo (caracteres 3-4) del total de pasivo corriente: lo que viene después es no corriente."""
+    for r in df.itertuples():
+        if str(r.cuenta).startswith("1") and "descripcion" in df and \
+                _norm(r.descripcion).startswith(("TOTAL PASIVO CORRIENTE", "TOTAL PASIVOS CORRIENTES",
+                                                 "TOTAL DE PASIVOS CORRIENTES")):
+            return str(r.cuenta)[2:4] + "~"
+    return "04"
+
+
+def conceptos(df: pd.DataFrame, comparativo: bool = False) -> dict[str, float | None]:
+    """Extrae los conceptos clave de un DataFrame devuelto por `estados` (cualquier plan de cuentas)."""
     col = "monto_comparativo" if comparativo else "monto"
-    idx = df.set_index("cuenta")[col]
+    idx = df.drop_duplicates("cuenta").set_index("cuenta")[col]
+    plan = plan_de_cuentas(df)
+    nombres = set(CONCEPTOS_D) | set(CONCEPTOS_POR_PLAN.get(plan, {}))
     out = {}
-    for nombre, ctas in CONCEPTOS_D.items():
-        vals = [idx.get(c) for c in ctas]
-        out[nombre] = float(sum(v for v in vals if pd.notna(v))) if any(pd.notna(v) for v in vals) else None
+    for nombre in nombres:
+        vals = [idx.get(c) for c in cuentas_concepto(df, nombre)]
+        if any(pd.notna(v) for v in vals):
+            out[nombre] = float(sum(v for v in vals if pd.notna(v)))
+        else:
+            out[nombre] = 0.0 if nombre in CONCEPTOS_OPCIONALES_CERO else None
+    if out.get("pasivos_con_costo") is None:
+        out["pasivos_con_costo"] = (out["otros_pasivos_financieros_cp"] or 0) + (out["otros_pasivos_financieros_lp"] or 0)
     return out
 
 
 def dato_concepto(df: pd.DataFrame, fuente: Fuente, concepto: str, rpj: str, ejercicio: int,
                   comparativo: bool = False) -> Dato:
-    ctas = CONCEPTOS_D[concepto]
+    ctas = cuentas_concepto(df, concepto)
     # En vivo, el balance (BG) y los resultados (ER) vienen de archivos distintos de la SMV
-    fuente = df.attrs.get("fuente_por_estado", {}).get("ER" if ctas[0].startswith("2") else "BG", fuente)
+    es_er = (ctas[0] if ctas else ("2" if concepto in ("ingresos", "utilidad_operativa", "gastos_financieros",
+                                                        "utilidad_neta") else "1")).startswith("2")
+    fuente = df.attrs.get("fuente_por_estado", {}).get("ER" if es_er else "BG", fuente)
     v = conceptos(df, comparativo)[concepto]
     anio = ejercicio - 1 if comparativo else ejercicio
-    return Dato(v, fuente, detalle=f"SMV RPJ {rpj}, ejercicio {anio}, cuenta(s) {'+'.join(ctas)} ({concepto})")
+    cuentas_txt = "+".join(ctas) if ctas else "sin cuenta en la SMV (se toma 0)"
+    return Dato(v, fuente, detalle=f"SMV RPJ {rpj}, ejercicio {anio}, cuenta(s) {cuentas_txt} ({concepto}), "
+                                   f"plan {plan_de_cuentas(df)}")

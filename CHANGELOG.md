@@ -1,5 +1,18 @@
 # Cambios
 
+## 0.2.1 — 2026-11-08
+- **Corregido**: bancos y otras empresas financieras (p.ej. BANCO BBVA PERU) fallaban con
+  "unsupported operand type(s) for +: 'NoneType' and 'NoneType'". La SMV usa planes de cuentas distintos
+  según el tipo de empresa; ahora FinPerú reconoce los planes D (general), F (bancos, financieras, cajas),
+  E (seguros), A (AFP), I (agentes de bolsa) y V (CAVALI/BVL), y busca por descripción si aparece otro.
+  Validado con las 351 presentaciones anuales 2025 y las 367 de 2023 del servicio de la SMV.
+- Bancos: la deuda financiera (D) son los adeudos y obligaciones financieras (los depósitos son pasivo
+  operativo); el Kd aproximado usa los intereses de adeudos (cuenta 2F0404 del estado individual) y se
+  muestra un aviso sobre cómo interpretar el WACC de un banco.
+- Mensajes de error claros: si falta una cifra se dice cuál; si falta una librería se indica cómo instalarla.
+- `FinPeru.bat` revisa al abrir que estén todas las librerías (p.ej. `pdfplumber`) e instala las que falten.
+- Nuevo control "Kd mayor que cero". Pruebas nuevas con casos reales de cada plan de cuentas.
+
 ## 0.2.0 — 2026-11-07
 Primera versión distribuible.
 

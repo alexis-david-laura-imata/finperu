@@ -91,6 +91,7 @@ try {
 
     Paso 3 'Librerías (pandas, openpyxl, xlwings, playwright, mcp, fastapi…)'
     Ejecutar $Uv @('pip', 'install', '--python', $VenvPy, '-r', 'requirements.txt')
+    Ejecutar $VenvPy @('scripts\verificar_entorno.py')
     Ok 'Librerías instaladas'
 
     # 4 ------------------------------------------------------------------ Chromium

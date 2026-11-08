@@ -89,7 +89,9 @@ def generar_wacc(rpj: str, anio: int, industria: str, *, kd: Any = None, paramet
             else:
                 emitir("aviso", "La nota de deuda del PDF no cuadró con el balance; se usa el Kd aproximado.")
         except Exception as e:  # noqa: BLE001
-            emitir("aviso", f"No se pudo leer la nota de deuda del PDF ({e}); se usa el Kd aproximado.")
+            from .errores import falta_modulo
+            emitir("aviso", f"No se pudo leer la nota de deuda del PDF ({falta_modulo(e) or e}); "
+                            "se usa el Kd aproximado.")
     kd = lineas_kd(kd)
     ins = recolectar(rpj, anio, industria, kd=kd, parametros=parametros, sobrescribir=sobrescribir,
                      locales=locales, via_smv=via_smv, kd_pdf=kd_pdf)
@@ -196,7 +198,8 @@ def kd_desde_pdf(rpj: str, anio: int, *, visible: bool = True, archivo_pdf: str 
     d = (c["otros_pasivos_financieros_cp"] or 0) + (c["otros_pasivos_financieros_lp"] or 0)
     d0 = (c0["otros_pasivos_financieros_cp"] or 0) + (c0["otros_pasivos_financieros_lp"] or 0)
     gf = abs(c["gastos_financieros"] or 0)
-    respaldo = gf / ((d + d0) / 2) if d + d0 else None
+    con_costo = (c["pasivos_con_costo"] or 0) + (c0["pasivos_con_costo"] or 0)   # en bancos incluye depósitos
+    respaldo = gf / (con_costo / 2) if con_costo else None
     if archivo_pdf:
         ruta, url, info = Path(archivo_pdf), None, {"documento": "PDF subido por el usuario"}
     else:

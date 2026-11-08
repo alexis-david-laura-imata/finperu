@@ -126,7 +126,8 @@ def _ejecutar(id_: str, p: PedidoGenerar) -> None:
                            via_smv=p.via_smv or config.VIA_SMV, kd_pdf=p.kd_pdf)
         t.update(estado="listo", resultado=res)
     except Exception as e:  # noqa: BLE001
-        t.update(estado="error", error=str(e), detalle=traceback.format_exc(limit=3))
+        from motor.errores import registrar
+        t.update(estado="error", error=registrar(e), detalle=traceback.format_exc(limit=6))
     finally:
         t["fin"] = datetime.now().isoformat(timespec="seconds")
         _lock_trabajo.release()

@@ -22,7 +22,7 @@ from ..eventos import emitir
 TITULO = re.compile(
     r"^\s*(?:nota\s+)?\d{1,2}\s*[.)-]?\s*(otros\s+pasivos\s+financieros|obligaciones\s+financieras|"
     r"pr[eé]stamos\s+y\s+obligaciones|deuda\s+financiera|pasivos\s+financieros|pr[eé]stamos\s+bancarios|"
-    r"obligaciones\s+con\s+entidades|otras\s+obligaciones\s+financieras)\b", re.I)
+    r"obligaciones\s+con\s+entidades|otras\s+obligaciones\s+financieras|adeud[oa]s\s+y\s+obligaciones\s+financieras)\b", re.I)
 SIGUIENTE_NOTA = re.compile(r"^\s*\d{1,2}\s*[.)-]?\s+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ,]{6,}$")
 NARRATIVA = re.compile(r"^\s*\([b-z]\)\s+\S+(\s+\S+){8,}")          # "(b) Los fondos provenientes de ..."
 RUIDO = re.compile(r"^\s*(notas a los estados|\(continuaci[oó]n\)|-\s*\d+\s*-|_{3,}|página|pag\.)", re.I)

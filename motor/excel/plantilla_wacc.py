@@ -162,25 +162,36 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
                 L.estilo_rango(h, f"C{t}", "etiqueta_b")
         fila += 1
 
-    def nombrar(cuenta, nombre, col="D"):
-        if cuenta in celdas_cuenta:
-            ref = f"='EEFF'!${col}${celdas_cuenta[cuenta]}"
-            L._nombre(nombre, ref)
-            L.nombres[nombre] = ref
-        else:
-            raise LookupError(f"La cuenta {cuenta} ({nombre}) no está en los EEFF de la SMV")
+    from ..datos.smv import cuentas_concepto
+    ctas = {c: cuentas_concepto(df, c) for c in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp",
+                                                  "patrimonio_total", "activo_total", "pasivo_total",
+                                                  "utilidad_operativa")}
 
-    for cta, nom in (("1D0309", "Deuda_CP"), ("1D0401", "Deuda_LP"), ("1D07ST", "Patrimonio"),
-                     ("1D020T", "Activo_Total"), ("1D040T", "Pasivo_Total"), ("2D03ST", "Utilidad_Operativa")):
-        nombrar(cta, nom)
-    for cta, nom in (("1D0309", "Deuda_CP_Ant"), ("1D0401", "Deuda_LP_Ant"), ("1D07ST", "Patrimonio_Ant")):
-        nombrar(cta, nom, "E")
-    for cta, clave in (("1D0309", "otros_pasivos_financieros_cp"), ("1D0401", "otros_pasivos_financieros_lp"),
-                       ("1D07ST", "patrimonio_total"), ("2D03ST", "utilidad_operativa")):
+    def nombrar(concepto, nombre, col="D"):
+        """Nombre de rango = suma de las celdas de las cuentas del concepto (0 si la empresa no tiene esa cuenta)."""
+        celdas = [f"'EEFF'!${col}${celdas_cuenta[c]}" for c in ctas[concepto] if c in celdas_cuenta]
+        if not celdas and concepto not in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp"):
+            raise LookupError(f"No encontré en los EEFF de la SMV la cuenta de {concepto} ({nombre})")
+        ref = "=" + ("+".join(celdas) if celdas else "0")
+        L._nombre(nombre, ref)
+        L.nombres[nombre] = ref
+
+    for conc, nom in (("otros_pasivos_financieros_cp", "Deuda_CP"), ("otros_pasivos_financieros_lp", "Deuda_LP"),
+                      ("patrimonio_total", "Patrimonio"), ("activo_total", "Activo_Total"),
+                      ("pasivo_total", "Pasivo_Total"), ("utilidad_operativa", "Utilidad_Operativa")):
+        nombrar(conc, nom)
+    for conc, nom in (("otros_pasivos_financieros_cp", "Deuda_CP_Ant"), ("otros_pasivos_financieros_lp", "Deuda_LP_Ant"),
+                      ("patrimonio_total", "Patrimonio_Ant")):
+        nombrar(conc, nom, "E")
+    montos = df.drop_duplicates("cuenta").set_index("cuenta")["monto"]
+    for clave in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp", "patrimonio_total",
+                  "utilidad_operativa"):
         dd = d[clave]
         fid = F.id("Estados financieros SMV", dd) if dd.fuente is not smv_dato.fuente else fid_smv
-        L.escribir(h, f"D{celdas_cuenta[cta]}", dd.valor, "dato", "num",
-                   comentario=f"[{fid}] Cuenta usada en el modelo. {dd.comentario()}", pausa=0.3)
+        for cta in ctas[clave]:
+            if cta in celdas_cuenta:
+                L.escribir(h, f"D{celdas_cuenta[cta]}", float(montos[cta]), "dato", "num",
+                           comentario=f"[{fid}] Cuenta usada en el modelo. {dd.comentario()}", pausa=0.3)
 
     # ------------------------------------------------------------ 4. Kd
     L.paso("Paso 4/10 · Costo de la deuda (Kd)")
@@ -314,7 +325,8 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
                COLOR["calculo"])
     cabecera(h, 5, ("Concepto", "Valor", "Fórmula", "Nota"))
     filas = [
-        ("Utilidad operativa", "=Utilidad_Operativa", None, "num", "EEFF, cuenta 2D03ST"),
+        ("Utilidad operativa", "=Utilidad_Operativa", None, "num",
+         "EEFF, cuenta " + "+".join(ctas["utilidad_operativa"])),
         ("NOPAT = UO × (1 − t)", "=Utilidad_Operativa*(1-Tasa_IR)", "NOPAT", "num", ""),
         (f"Capital invertido {N} (D + E)", "=Deuda_Fin+Patrimonio", "CI_Actual", "num", ""),
         (f"Capital invertido {N - 1} (D + E)", "=Deuda_CP_Ant+Deuda_LP_Ant+Patrimonio_Ant", "CI_Anterior", "num",

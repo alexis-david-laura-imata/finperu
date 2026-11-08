@@ -28,7 +28,8 @@
 |---|---|
 | `motor/config.py` | Rutas, parámetros por defecto, User-Agent |
 | `motor/datos/red.py` | Descargas con caché, reintentos, hash y registro de fuentes |
-| `motor/datos/smv.py` | EEFF de la SMV (SOAP en vivo o espejo smv-eeff), conceptos del plan contable |
+| `motor/datos/smv.py` | EEFF de la SMV (SOAP en vivo o espejo smv-eeff). Los conceptos (deuda, patrimonio, utilidad operativa…) se resuelven según el plan de cuentas: D, F, E, A, I, V (`CONCEPTOS_POR_PLAN`), con respaldo por descripción |
+| `motor/errores.py` | Mensajes de error entendibles para el usuario |
 | `motor/datos/smv_pdf.py` | Portal SMV: busca y descarga el PDF auditado y el XBRL |
 | `motor/datos/nota_deuda.py` | Lee la nota de otros pasivos financieros del PDF y arma la tabla Kd |
 | `motor/datos/damodaran.py` | Betas por industria (archivo del año evaluado), prima de mercado (histret) |

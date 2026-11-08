@@ -96,6 +96,19 @@ def recolectar(rpj: str, anio: int, industria: str, *, kd: float | list[LineaDeu
     if tipo_usado != p["estados_tipo"]:
         ins.avisos.append(f"Se usaron estados {'individuales' if tipo_usado == 'I' else tipo_usado} "
                           f"(no hay consolidados para {anio}).")
+    plan = smv.plan_de_cuentas(df)
+    p["plan_cuentas"] = plan
+    if plan == "F":
+        ins.avisos.append("Empresa del sistema financiero (plan de cuentas F de la SMV): la deuda financiera (D) son los "
+                          "adeudos y obligaciones financieras; los depósitos del público se tratan como pasivo operativo. "
+                          "Para bancos el WACC/EVA es referencial: Damodaran recomienda valorarlos con el costo del "
+                          "patrimonio (Ke).")
+    elif plan != "D":
+        ins.avisos.append(f"La empresa usa el plan de cuentas {plan} de la SMV ({smv.NOMBRE_PLAN.get(plan, 'especial')}); "
+                          "las cuentas del modelo se tomaron de su equivalente en ese plan. Revisa la hoja EEFF.")
+    if not (smv.cuentas_concepto(df, "otros_pasivos_financieros_cp") or
+            smv.cuentas_concepto(df, "otros_pasivos_financieros_lp")):
+        ins.avisos.append("No encontré cuentas de deuda financiera en los EEFF de la SMV: se toma D = 0 (empresa sin deuda).")
     for c in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp", "patrimonio_total",
               "utilidad_operativa", "activo_total", "pasivo_total", "ingresos", "utilidad_neta"):
         ins.datos[c] = smv.dato_concepto(df, f_smv, c, rpj, anio)
@@ -135,20 +148,76 @@ def recolectar(rpj: str, anio: int, industria: str, *, kd: float | list[LineaDeu
     elif kd is not None:
         ins.datos["kd"] = _manual(float(kd), "Kd ingresado")
     else:
-        gf = abs(smv.conceptos(df)["gastos_financieros"] or 0)
-        d0 = sum(smv.conceptos(df, True)[c] or 0 for c in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp"))
-        d1 = sum(smv.conceptos(df)[c] or 0 for c in ("otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp"))
-        aprox = gf / ((d0 + d1) / 2) if d0 + d1 else 0
-        ins.datos["kd"] = Dato(aprox, f_smv, detalle="APROXIMACIÓN: gastos financieros / deuda financiera promedio "
-                                                     "(no es el método del curso; reemplazar con la tabla de la nota)")
-        ins.avisos.append("Kd aproximado con gastos financieros / deuda promedio. Para el método del curso, "
-                          "cargar la tabla de la nota 'Otros pasivos financieros'.")
+        c1, c0 = smv.conceptos(df), smv.conceptos(df, True)
+        aprox, que, f_er = None, "", df.attrs.get("fuente_por_estado", {}).get("ER", f_smv)
+        if plan == "F":   # bancos: intereses de adeudos (solo en el individual) / adeudos promedio
+            try:
+                df_i = df if tipo_usado == "I" else smv.estados(rpj, anio, "A", "I", via=via_smv)[0]
+                i1, i0 = smv.conceptos(df_i), smv.conceptos(df_i, True)
+                deuda = lambda c: (c["otros_pasivos_financieros_cp"] or 0) + (c["otros_pasivos_financieros_lp"] or 0)  # noqa: E731
+                intereses = abs(i1.get("intereses_deuda") or 0)
+                if intereses and deuda(i1) + deuda(i0):
+                    aprox = intereses / ((deuda(i1) + deuda(i0)) / 2)
+                    que = ("intereses de adeudos y obligaciones financieras (cuenta 2F0404 de los EEFF individuales) / "
+                           "adeudos y obligaciones promedio")
+                    f_er = df_i.attrs.get("fuente_por_estado", {}).get("ER", f_er)
+            except Exception as e:  # noqa: BLE001
+                emitir("aviso", f"No pude leer los EEFF individuales para el Kd del banco ({e})")
+        if aprox is None:
+            gf = abs(c1["gastos_financieros"] or 0)
+            d0, d1 = c0["pasivos_con_costo"] or 0, c1["pasivos_con_costo"] or 0
+            aprox = gf / ((d0 + d1) / 2) if d0 + d1 else 0.0
+            que = ("gastos por intereses / pasivos con costo promedio (depósitos, interbancarios y adeudos: "
+                   "costo de fondeo del banco)" if plan == "F" else "gastos financieros / deuda financiera promedio")
+        ins.datos["kd"] = Dato(aprox, f_er, detalle=f"APROXIMACIÓN: {que} (no es el método del curso; "
+                                                    "reemplazar con la tabla de la nota)")
+        ins.avisos.append(f"Kd aproximado = {que} = {aprox:.2%}. Para el método del curso, "
+                          "cargar la tabla de la nota de deuda del PDF auditado.")
+        if aprox <= 0:
+            ins.avisos.append("La SMV no reporta gastos financieros o deuda para esta empresa: el Kd aproximado es 0. "
+                              "Ingresa el Kd (tasa única o tabla) para un WACC válido.")
     emitir("insumos_ok", f"Insumos completos ({len(ins.datos)} datos con fuente)")
     return ins
 
 
 # ---------------------------------------------------------------- cálculo
+class DatosIncompletos(ValueError):
+    """Faltan cifras indispensables para el modelo (mensaje pensado para el usuario)."""
+
+
+REQUERIDOS = {
+    "patrimonio_total": "total patrimonio", "patrimonio_total_ant": "total patrimonio del año anterior",
+    "utilidad_operativa": "utilidad (resultado) operativa", "activo_total": "total activo",
+    "pasivo_total": "total pasivo", "otros_pasivos_financieros_cp": "deuda financiera corriente",
+    "otros_pasivos_financieros_lp": "deuda financiera no corriente",
+    "otros_pasivos_financieros_cp_ant": "deuda financiera corriente del año anterior",
+    "otros_pasivos_financieros_lp_ant": "deuda financiera no corriente del año anterior",
+    "rf": "tasa libre de riesgo", "riesgo_pais": "riesgo país", "prima": "prima de mercado",
+    "beta_u": "beta desapalancada", "inflacion_pe": "inflación Perú", "inflacion_us": "inflación EE.UU.",
+    "tasa_impuesto": "tasa de impuesto", "kd": "costo de la deuda (Kd)",
+}
+
+
+def validar(ins: Insumos) -> None:
+    faltan = [f"{nombre} ({k})" for k, nombre in REQUERIDOS.items()
+              if ins.datos.get(k) is None or ins.datos[k].valor is None]
+    if faltan:
+        plan = ins.parametros.get("plan_cuentas", "?")
+        raise DatosIncompletos(
+            f"No se encontraron estas cifras para {ins.empresa.get('nombre', '')} {ins.anio} "
+            f"(plan de cuentas SMV '{plan}'): " + ", ".join(faltan) +
+            ". Revisa que la empresa haya presentado estados anuales ese año o ingrésalas manualmente.")
+    v = ins.datos
+    if (v["otros_pasivos_financieros_cp"].valor + v["otros_pasivos_financieros_lp"].valor
+            + v["patrimonio_total"].valor) <= 0:
+        raise DatosIncompletos("Deuda + patrimonio es cero o negativo: no se puede calcular la estructura de capital.")
+    if v["patrimonio_total"].valor <= 0:
+        raise DatosIncompletos("El patrimonio es negativo o cero: la relación D/E y el WACC no tienen sentido "
+                               "económico para esta empresa en ese año.")
+
+
 def calcular(ins: Insumos, mostrar: bool = False, velocidad: float = 1.0) -> dict[str, Any]:
+    validar(ins)
     v = {k: d.valor for k, d in ins.datos.items()}
     t = v["tasa_impuesto"]
     D = v["otros_pasivos_financieros_cp"] + v["otros_pasivos_financieros_lp"]
@@ -182,6 +251,7 @@ def calcular(ins: Insumos, mostrar: bool = False, velocidad: float = 1.0) -> dic
     chk("Beta apalancada ≥ desapalancada", r["beta_l"] >= v["beta_u"], f"{r['beta_l']:.4f} ≥ {v['beta_u']:.4f}")
     chk("Ke > Kd después de impuestos", r["ke"] > r["kd_despues_impuestos"],
         f"{r['ke']:.2%} > {r['kd_despues_impuestos']:.2%}")
+    chk("Kd mayor que cero", r["kd"] > 0, f"{r['kd']:.2%}")
     chk("WACC entre Kd(1−t) y Ke", r["kd_despues_impuestos"] <= r["wacc"] <= r["ke"], f"{r['wacc']:.2%}")
     r["controles"] = ctrl
     r["avisos"] = ins.avisos

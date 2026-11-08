@@ -85,4 +85,6 @@ ni `config.local.json`.
 | El Excel no se anima | Cierra cuadros de diálogo abiertos en Excel; o elige "Solo cálculos". |
 | La nota de deuda no cuadra | Revisa las filas naranjas en la tabla Kd; puedes corregirlas a mano antes de generar. |
 | OneDrive bloquea archivos | Pausa la sincronización o instala FinPerú fuera de OneDrive. |
+| Banco, aseguradora o AFP | Funciona, con un aviso: su plan de cuentas es distinto y el WACC de un banco es referencial (sus depósitos no son deuda financiera). |
+| "Falta la librería …" | Abre FinPerú con `FinPeru.bat` (instala lo que falte) o ejecuta `Instalar FinPeru.bat`. |
 | Antivirus bloquea `uv.exe` | Agrega la carpeta de FinPerú como excepción y vuelve a instalar. |

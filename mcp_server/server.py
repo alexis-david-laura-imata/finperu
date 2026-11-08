@@ -73,7 +73,8 @@ def _nuevo_trabajo(tipo: str, fn, **kw) -> dict:
             t["resultado"] = fn(**kw)
             t["estado"] = "listo"
         except Exception as e:  # noqa: BLE001
-            t.update(estado="error", error=str(e), detalle=traceback.format_exc(limit=3))
+            from motor.errores import registrar
+            t.update(estado="error", error=registrar(e), detalle=traceback.format_exc(limit=6))
         finally:
             t["fin"] = datetime.now().isoformat(timespec="seconds")
             from motor.eventos import desuscribir

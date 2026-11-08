@@ -9,6 +9,13 @@ if not exist "%PY%" (
   powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0instalador\instalar.ps1"
   if not exist "%PY%" ( pause & exit /b 1 )
 )
+"%PY%" scripts\verificar_entorno.py
+if errorlevel 1 (
+  echo.
+  echo  Faltan librerias. Ejecuta "Instalar FinPeru.bat" y vuelve a abrir FinPeru.
+  pause
+  exit /b 1
+)
 if /i "%~1"=="panel" goto panel
 
 :menu
