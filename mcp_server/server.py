@@ -93,7 +93,9 @@ def _resumen_resultado(res: dict) -> dict:
             "Wd": f"{x['Wd']:.2%}", "We": f"{x['We']:.2%}", "ROIC": f"{x['roic']:.4%}",
             "EVA_miles_soles": round(x["eva"], 2), "NOPAT": round(x["nopat"], 2),
             "controles": [f"{'OK' if c['ok'] else 'REVISAR'} · {c['control']} ({c['detalle']})" for c in res["controles"]],
-            "avisos": res["avisos"], "verificacion_excel": res.get("verificacion_excel")}
+            "avisos": res["avisos"], "verificacion_excel": res.get("verificacion_excel"),
+            **({"ROE": f"{x['roe']:.4%}", "EVA_accionista_miles_soles": round(x["eva_accionista"], 2)}
+               if "roe" in x else {})}
 
 
 # ------------------------------------------------------------------ herramientas

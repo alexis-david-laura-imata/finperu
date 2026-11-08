@@ -146,7 +146,8 @@ def generar_wacc(rpj: str, anio: int, industria: str, *, kd: Any = None, paramet
     (carpeta / "receta.json").write_text(json.dumps(receta, ensure_ascii=False, indent=2, default=str), "utf-8")
     salida = {"carpeta": str(carpeta), "excel": str(ruta_xlsx), "modo": "vivo" if vivo else "archivo",
               "resultados": {k: r[k] for k in ("wacc", "ke", "ke_usd", "beta_l", "kd", "Wd", "We", "roic", "eva",
-                                               "nopat", "ci_promedio")},
+                                               "nopat", "ci_promedio", "roe", "eva_accionista",
+                                               "patrimonio_promedio") if k in r},
               "controles": r["controles"], "avisos": r["avisos"], "verificacion_excel": verif,
               "recorrido": recorrido,
               "segundos": round((datetime.now() - t0).total_seconds(), 1)}
@@ -207,9 +208,16 @@ def kd_desde_pdf(rpj: str, anio: int, *, visible: bool = True, archivo_pdf: str 
         emp = next((e for e in smv.buscar_empresa(rpj) if e["rpj"] == rpj), {"nombre": rpj})
         f, info = pdf_auditado(rpj, emp["nombre"], anio, tipo, visible=visible)
         ruta, url = Path(f.archivo), f.url
-    r = extraer(ruta, deuda_esf=d, deuda_esf_anterior=d0, anio=anio, tasa_respaldo=respaldo)
+    sofr = None
+    try:
+        from .datos.tasas_referencia import sofr as _sofr
+        sofr = _sofr(anio).valor
+    except Exception as e:  # noqa: BLE001
+        emitir("aviso", f"Sin SOFR de referencia ({e}); las tasas 'SOFR + margen' quedarán sin convertir.")
+    r = extraer(ruta, deuda_esf=d, deuda_esf_anterior=d0, anio=anio, tasa_respaldo=respaldo, sofr=sofr)
     out = r.como_dict()
-    out["kd_pdf"] = {"archivo": str(ruta), "url": url, "pagina": r.pagina,
+    out["sofr"] = sofr
+    out["kd_pdf"] = {"archivo": str(ruta), "url": url, "pagina": r.pagina, "sofr": sofr,
                      "nota": f"{info.get('documento', '')} {info.get('fecha', '')}".strip()}
     if r.lineas and all(l["tasa_min"] is not None for l in r.lineas):
         out["kd_estimado"] = kd_desde_tabla(lineas_kd(r.lineas))["kd"]

@@ -20,7 +20,7 @@ from publicos import FIXTURES
 
 CSV = FIXTURES / "smv_planes_2025.csv"
 MERCADO = {"rf": 0.0418, "riesgo_pais": 0.0127, "prima": 0.070323, "beta_u": 0.2703,
-           "inflacion_pe": 0.0151, "inflacion_us": 0.027}
+           "inflacion_pe": 0.0151, "inflacion_us": 0.027, "beta_l_industria": 0.5857}
 REQUERIDOS = ["otros_pasivos_financieros_cp", "otros_pasivos_financieros_lp", "patrimonio_total",
               "utilidad_operativa", "activo_total", "pasivo_total", "utilidad_neta"]
 
@@ -111,6 +111,13 @@ def test_bbva_2025_modelo_completo(smv_offline):
     assert 0.03 < ins.datos["kd"].valor < 0.10
     r = calcular(ins)
     assert r["D"] == 7_917_530 and r["E"] == 14_991_629
+    # banco: beta apalancada de la industria (sin Hamada) y NOPAT con los intereses de adeudos sumados
+    assert r["beta_l"] == 0.5857
+    assert r["nopat"] == pytest.approx((3_291_004 + 483_731) * (1 - 0.295))
+    # ROE = 16.9 %, igual al publicado por Apoyo & Asociados para BBVA Perú 2025
+    assert r["roe"] == pytest.approx(2_390_911 / ((14_991_629 + 13_300_346) / 2))
+    assert round(r["roe"], 3) == 0.169
+    assert r["eva_accionista"] == pytest.approx((r["roe"] - r["ke"]) * r["patrimonio_promedio"])
     assert 0 < r["wacc"] < r["ke"]
     assert all(c["ok"] for c in r["controles"]), r["controles"]
 

@@ -124,6 +124,27 @@ def recolectar(rpj: str, anio: int, industria: str, *, kd: float | list[LineaDeu
     ins.datos["beta_u"] = (_manual(sob["beta_u"], f"Beta desapalancada ingresada ({industria})") if "beta_u" in sob
                            else damodaran.beta_desapalancada(industria, anio, p["region_beta"], p["damodaran_vintage"],
                                                              p["beta_columna"], local=loc.get("betas")))
+    if plan == "F":
+        # Bancos: la beta se toma APALANCADA de la industria (Damodaran, columna 'Beta'), sin Hamada,
+        # porque el D/E de Damodaran para bancos no es comparable con los adeudos del banco.
+        ins.datos["beta_l_industria"] = (
+            _manual(sob["beta_l_industria"], f"Beta apalancada ingresada ({industria})") if "beta_l_industria" in sob
+            else damodaran.beta_desapalancada(industria, anio, p["region_beta"], p["damodaran_vintage"], "Beta",
+                                              local=loc.get("betas")))
+        ins.datos["utilidad_neta_ant"] = smv.dato_concepto(df, f_smv, "utilidad_neta", rpj, anio, comparativo=True)
+        try:
+            df_i = df if tipo_usado == "I" else smv.estados(rpj, anio, "A", "I", via=via_smv)[0]
+            fi = df_i.attrs.get("fuente_por_estado", {}).get("ER", f_smv)
+            v_int = abs(smv.conceptos(df_i)["intereses_deuda"] or 0)
+            if v_int:
+                ins.datos["intereses_deuda"] = Dato(v_int, fi, detalle=(
+                    f"SMV RPJ {rpj}, ejercicio {anio}, cuenta 2F0404 (EEFF individuales): intereses de adeudos y "
+                    "obligaciones financieras. Se suman a la utilidad operativa para el ROIC (su costo ya está en el WACC)."))
+        except Exception as e:  # noqa: BLE001
+            emitir("aviso", f"No pude leer los intereses de adeudos del banco ({e})")
+        if "intereses_deuda" not in ins.datos:
+            ins.avisos.append("No se encontraron los intereses de adeudos (2F0404): el ROIC del banco usa la utilidad "
+                              "operativa tal cual (ya neta de esos intereses), por lo que queda subestimado.")
     ins.datos["inflacion_pe"] = (_manual(sob["inflacion_pe"], "Inflación Perú (dato del docente)")
                                  if "inflacion_pe" in sob else bcrp.inflacion_peru(anio))
     ins.datos["inflacion_us"] = (_manual(sob["inflacion_us"], "Inflación EE.UU. (dato del docente)")
@@ -207,6 +228,10 @@ def validar(ins: Insumos) -> None:
             f"No se encontraron estas cifras para {ins.empresa.get('nombre', '')} {ins.anio} "
             f"(plan de cuentas SMV '{plan}'): " + ", ".join(faltan) +
             ". Revisa que la empresa haya presentado estados anuales ese año o ingrésalas manualmente.")
+    if ins.parametros.get("plan_cuentas") == "F":
+        for k, nombre in (("utilidad_neta", "utilidad neta"), ("beta_l_industria", "beta apalancada de la industria")):
+            if ins.datos.get(k) is None or ins.datos[k].valor is None:
+                raise DatosIncompletos(f"Falta {nombre} ({k}) para el modelo del banco.")
     v = ins.datos
     if (v["otros_pasivos_financieros_cp"].valor + v["otros_pasivos_financieros_lp"].valor
             + v["patrimonio_total"].valor) <= 0:
@@ -228,18 +253,25 @@ def calcular(ins: Insumos, mostrar: bool = False, velocidad: float = 1.0) -> dic
     r["D"], r["E"], r["D+E"] = D, E, D + E
     r["Wd"], r["We"] = D / (D + E), E / (D + E)
     r["D/E"] = D / E
-    r["beta_l"] = v["beta_u"] * (1 + r["D/E"] * (1 - t))
+    banco = ins.parametros.get("plan_cuentas") == "F" and v.get("beta_l_industria") is not None
+    r["banco"] = banco
+    r["beta_l"] = v["beta_l_industria"] if banco else v["beta_u"] * (1 + r["D/E"] * (1 - t))
     r["ke_usd"] = v["rf"] + r["beta_l"] * v["prima"]
     r["ke_soles"] = (1 + r["ke_usd"]) * (1 + v["inflacion_pe"]) / (1 + v["inflacion_us"]) - 1
     r["ke"] = r["ke_soles"] + v["riesgo_pais"]
     r["kd"] = v["kd"]
     r["kd_despues_impuestos"] = v["kd"] * (1 - t)
     r["wacc"] = v["kd"] * (1 - t) * r["Wd"] + r["ke"] * r["We"]
-    r["nopat"] = v["utilidad_operativa"] * (1 - t)
+    r["intereses_deuda"] = v.get("intereses_deuda") or 0.0 if banco else 0.0
+    r["nopat"] = (v["utilidad_operativa"] + r["intereses_deuda"]) * (1 - t)
     r["ci"], r["ci_ant"] = D + E, D0 + E0
     r["ci_promedio"] = (r["ci"] + r["ci_ant"]) / 2
     r["roic"] = r["nopat"] / r["ci_promedio"]
     r["eva"] = (r["roic"] - r["wacc"]) * r["ci_promedio"]
+    if banco:                                     # enfoque del accionista (Damodaran: bancos se valoran con Ke)
+        r["patrimonio_promedio"] = (E + E0) / 2
+        r["roe"] = v["utilidad_neta"] / r["patrimonio_promedio"]
+        r["eva_accionista"] = (r["roe"] - r["ke"]) * r["patrimonio_promedio"]
 
     # Controles
     ctrl = []
@@ -273,8 +305,10 @@ def mostrar_calculos(v: dict, r: dict, velocidad: float = 1.0) -> None:
         ("Patrimonio E", "Total patrimonio", f"{r['E']:,.0f}", f"{r['E']:,.0f}"),
         ("Peso deuda Wd", "D / (D + E)", f"{r['D']:,.0f} / {r['D+E']:,.0f}", f"{r['Wd']:.4%}"),
         ("Peso patrimonio We", "E / (D + E)", f"{r['E']:,.0f} / {r['D+E']:,.0f}", f"{r['We']:.4%}"),
-        ("Beta apalancada", "βU × [1 + D/E × (1 − t)]", f"{v['beta_u']:.4f} × [1 + {r['D/E']:.4f} × (1 − {t:.3f})]",
-         f"{r['beta_l']:.4f}"),
+        (("Beta apalancada (banco)", "β apalancada de la industria (sin Hamada)", f"{r['beta_l']:.4f}",
+          f"{r['beta_l']:.4f}") if r.get("banco") else
+         ("Beta apalancada", "βU × [1 + D/E × (1 − t)]", f"{v['beta_u']:.4f} × [1 + {r['D/E']:.4f} × (1 − {t:.3f})]",
+          f"{r['beta_l']:.4f}")),
         ("Ke en dólares (CAPM)", "Rf + βL × (Rm − Rf)", f"{v['rf']:.4%} + {r['beta_l']:.4f} × {v['prima']:.4%}",
          f"{r['ke_usd']:.4%}"),
         ("Ke en soles (Fisher)", "(1 + Ke$) × (1 + πPE) / (1 + πUS) − 1",
@@ -283,13 +317,21 @@ def mostrar_calculos(v: dict, r: dict, velocidad: float = 1.0) -> None:
         ("Kd después de impuestos", "Kd × (1 − t)", f"{r['kd']:.4%} × (1 − {t:.3f})", f"{r['kd_despues_impuestos']:.4%}"),
         ("WACC", "Kd(1−t) × Wd + Ke × We",
          f"{r['kd_despues_impuestos']:.4%} × {r['Wd']:.4%} + {r['ke']:.4%} × {r['We']:.4%}", f"{r['wacc']:.4%}"),
-        ("NOPAT", "UO × (1 − t)", f"{v['utilidad_operativa']:,.0f} × (1 − {t:.3f})", f"{r['nopat']:,.0f}"),
+        (("NOPAT", "(UO + intereses de adeudos) × (1 − t)",
+          f"({v['utilidad_operativa']:,.0f} + {r['intereses_deuda']:,.0f}) × (1 − {t:.3f})", f"{r['nopat']:,.0f}")
+         if r.get("banco") else
+         ("NOPAT", "UO × (1 − t)", f"{v['utilidad_operativa']:,.0f} × (1 − {t:.3f})", f"{r['nopat']:,.0f}")),
         ("Capital invertido promedio", "(CI actual + CI anterior) / 2", f"({r['ci']:,.0f} + {r['ci_ant']:,.0f}) / 2",
          f"{r['ci_promedio']:,.0f}"),
         ("ROIC", "NOPAT / CI promedio", f"{r['nopat']:,.0f} / {r['ci_promedio']:,.0f}", f"{r['roic']:.4%}"),
         ("EVA", "(ROIC − WACC) × CI promedio", f"({r['roic']:.4%} − {r['wacc']:.4%}) × {r['ci_promedio']:,.0f}",
          f"{r['eva']:,.0f}"),
     ]
+    if r.get("banco"):
+        pasos += [("ROE", "Utilidad neta / patrimonio promedio",
+                   f"{v['utilidad_neta']:,.0f} / {r['patrimonio_promedio']:,.0f}", f"{r['roe']:.4%}"),
+                  ("EVA del accionista", "(ROE − Ke) × patrimonio promedio",
+                   f"({r['roe']:.4%} − {r['ke']:.4%}) × {r['patrimonio_promedio']:,.0f}", f"{r['eva_accionista']:,.0f}")]
     emitir("calculo_inicio", f"Cálculo en Python ({len(pasos)} pasos)")
     for i, (nombre, formula, sustitucion, resultado) in enumerate(pasos, 1):
         emitir("calculo", f"{i:>2}. {nombre} = {formula} = {sustitucion} = {resultado}",

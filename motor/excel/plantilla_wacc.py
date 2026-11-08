@@ -286,6 +286,11 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
     dato(h, 13, "Inflación Perú (dic/dic)", "inflacion_pe", "Infl_Peru", "pct")
     dato(h, 14, "Inflación EE.UU.", "inflacion_us", "Infl_EEUU", "pct")
     formula(h, 15, "Tasa de impuesto a la renta", "=Tasa_IR", None, "pct", "Viene de la hoja Parametros")
+    banco = bool(r.get("banco"))
+    if banco:
+        dato(h, 16, f"Beta APALANCADA de la industria — {ins.industria}", "beta_l_industria", "Beta_Ind", "dec4",
+             "Bancos: se usa la beta apalancada de la industria (Damodaran, columna 'Beta') sin desapalancar ni "
+             "re-apalancar: el D/E de Damodaran para bancos no es comparable con los adeudos del banco.")
 
     # ------------------------------------------------------------ 6. CPPC
     L.paso("Paso 6/10 · Estructura de capital, beta, Ke y WACC")
@@ -293,16 +298,21 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
     encabezado(h, "Costo promedio ponderado de capital (CPPC / WACC)",
                "Todas son fórmulas. La columna D muestra la fórmula en texto para leerla sin hacer clic.", COLOR["calculo"])
     cabecera(h, 5, ("Concepto", "Valor", "Fórmula", "Nota"))
+    nota_d = ("Adeudos y obligaciones financieras (cuentas " + " + ".join(ctas["otros_pasivos_financieros_cp"] +
+              ctas["otros_pasivos_financieros_lp"]) + "). Los depósitos del público son pasivo operativo del banco."
+              if banco else "Cuentas " + " + ".join(ctas["otros_pasivos_financieros_cp"] + ctas["otros_pasivos_financieros_lp"])
+              + " del ESF (incluye arrendamientos financieros si la empresa los presenta en ese rubro).")
     filas = [
-        ("Deuda financiera (D) = otros pasivos financieros CP + LP", "=Deuda_CP+Deuda_LP", "Deuda_Fin", "num",
-         "No incluye pasivo por arrendamiento (criterio del curso)."),
+        ("Deuda financiera (D) = otros pasivos financieros CP + LP", "=Deuda_CP+Deuda_LP", "Deuda_Fin", "num", nota_d),
         ("Patrimonio (E)", "=Patrimonio", None, "num", "Total patrimonio (valor contable)."),
         ("Total financiamiento (D + E)", "=Deuda_Fin+Patrimonio", "Total_DE", "num", ""),
         ("Peso de la deuda (Wd)", "=Deuda_Fin/Total_DE", "Peso_Deuda", "pct", ""),
         ("Peso del patrimonio (We)", "=Patrimonio/Total_DE", "Peso_Patrim", "pct", ""),
         ("Relación deuda / patrimonio (D/E)", "=Deuda_Fin/Patrimonio", "Ratio_DE", "dec4", ""),
-        ("Beta apalancada (βL) — Hamada", "=Beta_U*(1+Ratio_DE*(1-Tasa_IR))", "Beta_L", "dec4",
-         "βL = βU × [1 + D/E × (1 − t)]"),
+        (("Beta apalancada (βL) — industria bancaria", "=Beta_Ind", "Beta_L", "dec4",
+          "Bancos: beta apalancada de la industria, sin Hamada (ver hoja Mercado).") if banco else
+         ("Beta apalancada (βL) — Hamada", "=Beta_U*(1+Ratio_DE*(1-Tasa_IR))", "Beta_L", "dec4",
+          "βL = βU × [1 + D/E × (1 − t)]")),
         ("Ke en dólares (CAPM)", "=Tasa_Rf+Beta_L*Prima_Mercado", "Ke_USD", "pct", "Ke = Rf + βL × (Rm − Rf)"),
         ("Ke en soles (Fisher)", "=(1+Ke_USD)*(1+Infl_Peru)/(1+Infl_EEUU)-1", "Ke_Soles", "pct",
          "(1 + Ke$) × (1 + πPE) / (1 + πUS) − 1"),
@@ -324,10 +334,23 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
     encabezado(h, "ROIC y valor económico agregado (EVA)", "¿La empresa rinde más de lo que le cuesta su capital?",
                COLOR["calculo"])
     cabecera(h, 5, ("Concepto", "Valor", "Fórmula", "Nota"))
+    if banco:
+        di = d.get("intereses_deuda")
+        L.escribir(h, "G6", "Intereses de adeudos (2F0404)", "etiqueta")
+        L.escribir(h, "H6", di.valor if di else 0, "dato", "num", "Int_Deuda",
+                   comentario=di.comentario() if di else "No disponible: el ROIC queda subestimado.")
+        L.ancho(h, "G", 34)
+        L.ancho(h, "H", 16)
+        fila_uo = [("Utilidad operativa", "=Utilidad_Operativa", None, "num",
+                    "EEFF, cuenta " + "+".join(ctas["utilidad_operativa"]) + " (ya neta de intereses de adeudos)"),
+                   ("NOPAT = (UO + intereses de adeudos) × (1 − t)", "=(Utilidad_Operativa+Int_Deuda)*(1-Tasa_IR)",
+                    "NOPAT", "num", "Se suman los intereses de la deuda D porque su costo ya está en el WACC.")]
+    else:
+        fila_uo = [("Utilidad operativa", "=Utilidad_Operativa", None, "num",
+                    "EEFF, cuenta " + "+".join(ctas["utilidad_operativa"])),
+                   ("NOPAT = UO × (1 − t)", "=Utilidad_Operativa*(1-Tasa_IR)", "NOPAT", "num", "")]
     filas = [
-        ("Utilidad operativa", "=Utilidad_Operativa", None, "num",
-         "EEFF, cuenta " + "+".join(ctas["utilidad_operativa"])),
-        ("NOPAT = UO × (1 − t)", "=Utilidad_Operativa*(1-Tasa_IR)", "NOPAT", "num", ""),
+        *fila_uo,
         (f"Capital invertido {N} (D + E)", "=Deuda_Fin+Patrimonio", "CI_Actual", "num", ""),
         (f"Capital invertido {N - 1} (D + E)", "=Deuda_CP_Ant+Deuda_LP_Ant+Patrimonio_Ant", "CI_Anterior", "num",
          "Columna del año anterior en EEFF"),
@@ -344,6 +367,21 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
     L.escribir(h, f"D{fe}", "(ROIC − WACC) × capital invertido promedio", "nota")
     L.escribir(h, f"B{fe + 1}", "Conclusión", "etiqueta_b")
     L.escribir(h, f"C{fe + 1}", '=IF(Valor_EVA>0,"CREA VALOR","DESTRUYE VALOR")', "formula_b")
+    if banco:
+        fb = fe + 3
+        L.escribir(h, f"B{fb}", "Enfoque del accionista (recomendado para bancos)", "subtitulo")
+        un, un0 = d["utilidad_neta"], d.get("utilidad_neta_ant")
+        L.escribir(h, f"B{fb + 1}", "Utilidad neta del ejercicio", "etiqueta")
+        L.escribir(h, f"C{fb + 1}", un.valor, "dato", "num", "Utilidad_Neta", comentario=un.comentario())
+        filas_b = [
+            ("Patrimonio promedio", "=(Patrimonio+Patrimonio_Ant)/2", "Patrim_Prom", "num", ""),
+            ("ROE = utilidad neta / patrimonio promedio", "=Utilidad_Neta/Patrim_Prom", "ROE", "pct", ""),
+            ("Costo del patrimonio (Ke)", "=Ke_Final", None, "pct", "Viene de la hoja CPPC"),
+            ("EVA del accionista = (ROE − Ke) × patrimonio promedio", "=(ROE-Ke_Final)*Patrim_Prom",
+             "EVA_Accionista", "num", "Damodaran: a los bancos se les mide contra el costo del patrimonio."),
+        ]
+        for k, (et, f, nom, fmt, nota) in enumerate(filas_b, start=fb + 2):
+            formula(h, k, et, f, nom, fmt, nota)
 
     # ------------------------------------------------------------ 8. CONTROLES
     L.paso("Paso 8/10 · Controles de auditoría")
@@ -365,6 +403,8 @@ def construir(L: Lienzo, ins: Insumos, r: dict[str, Any]) -> dict:
         ("ROIC Excel = ROIC Python", "=ROIC", r["roic"], 1e-9, "pct4", ""),
         ("EVA Excel = EVA Python", "=Valor_EVA", r["eva"], 0.01, "num2", ""),
         ("Beta apalancada ≥ desapalancada", "=Beta_L", "=Beta_U", None, "dec4", "Con deuda, el riesgo sube."),
+        *([("ROE Excel = ROE Python", "=ROE", r["roe"], 1e-9, "pct4", "Enfoque del accionista (bancos).")]
+          if "roe" in r else []),
         ("Ke > Kd después de impuestos", "=Ke_Final", "=Kd_Neto", None, "pct", "El accionista exige más que el banco."),
     ]
     c0 = 6

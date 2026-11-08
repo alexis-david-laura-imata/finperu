@@ -1,0 +1,127 @@
+15 OBLIGACIONES FINANCIERAS
+Al 31 de diciembre, el pasivo por arrendamiento comprende:
+Tipo de Tasa de
+Entidad bienes interés 2025 2024
+S/000 S/000
+a. Arrendamientos financieros con entidades
+financieras
+Scotiabank Vehículos 6.60% 38,317 52,672
+Banco de Crédito del Perú Vehículos 7.40% 47,425 63,882
+BBVA Continental Vehículos 6.45% 41,076 50,144
+Subtotal 126,818 166,698
+b. Otros arrendamientos 38,388 45,256
+Total 165,206 211,954
+Al 31 de diciembre, la porción corriente y no corriente de las obligaciones financieras se discriminan
+como sigue:
+2025 2024
+S/000 S/000
+Total de obligaciones financieras 165,206 211,954
+Menos: porción no corriente (118,357) (165,883)
+Porción corriente 46,849 46,071
+Al 31 de diciembre, los pagos mínimos a efectuarse y el valor presente de las obligaciones por
+contratos de arrendamiento financiero son los siguientes:
+2025 2024
+S/000 S/000
+Hasta 1 año 58,216 62,566
+De 1 a 8 años 134,264 194,346
+192,480 256,912
+Cargos financieros futuros sobre
+obligaciones financieras (27,274) (44,958)
+Valor presente de las obligaciones financieras 165,206 211,954
+(i) Activo por derecho de uso -
+Los activos por derecho de uso de arrendamientos al inicio se midieron por el equivalente del valor del
+pasivo por arrendamiento.
+El movimiento del activo por derecho de uso es el siguiente:
+2025 2024
+S/000 S/000
+Saldo inicial 45,256 53,930
+Adiciones 8,020 7,097
+Bajas (2,783) (1,194)
+Depreciación (12,105) (14,577)
+Saldo final 38,388 45,256
+- 49 -16 CUENTAS POR PAGAR COMERCIALES
+Este rubro comprende:
+2025 2024
+S/000 S/000
+Facturas por pagar (a) 856,471 1,105,439
+Facturas negociadas por Entidades Financieras (b) 335,722 44,654
+Servicios recibidos y no facturados (c) 62,816 63,443
+1,255,009 1,213,536
+(a) Las cuentas por pagar comerciales se originan principalmente por la adquisición de materiales,
+suministros y la prestación de servicios para el desarrollo de la actividad productiva del Grupo,
+estas cuentas por pagar están denominadas en moneda nacional y moneda extranjera, tienen
+vencimientos corrientes, no generan intereses y no se han otorgado garantías por estas
+obligaciones.
+(b) Corresponden a transacciones de cesión de derecho de cobro que no han implicado un cambio en
+los términos comerciales acordados con los proveedores y el Grupo, por lo que se mantiene su
+clasificación como cuentas por pagar comerciales. Estas transacciones son solicitadas
+directamente por el proveedor y es este quien negocia la tasa de interés con las instituciones
+financieras, para el Grupo no cambia la condición de pago.
+(c) Los servicios recibidos y no facturados se originan principalmente por servicios de mantenimiento,
+red de datos, servicios de marketing y otros. Estas cuentas por pagar están denominadas en
+moneda nacional y moneda extranjera, tienen vencimientos corrientes, no generan intereses y no
+se han otorgado garantías por estas obligaciones.
+El valor en libros de las cuentas por pagar comerciales es similar a su valor razonable debido a su
+vencimiento en el corto plazo.
+17 OTRAS CUENTAS POR PAGAR
+Este rubro comprende:
+2025 2024
+S/000 S/000
+Tributos (a) 707,236 502,196
+Depósitos en garantía (b) 274,626 266,928
+Pasivos con el personal 176,767 168,956
+Dividendos por pagar 72,475 77,139
+Provisiones por descuentos a clientes (c) 61,673 55,764
+Fletes 12,794 18,637
+Compensación por tiempo de servicios 3,523 3,004
+Diversas 63,659 68,394
+1,372,753 1,161,018
+Menos: porción no corriente (274,626) (266,928)
+1,098,127 894,090
+(a) Tributos
+Al 31 de diciembre de 2025, el rubro Tributos comprende principalmente al IGV por pagar por
+S/463,633,000 relacionado a la facturación por regalías (S/417,244,000 al 31 de diciembre de 2024).
+- 50 -(b) Depósitos en garantía -
+Al 31 de diciembre de 2025, el Grupo mantiene S/286,924,000 como depósitos en garantía
+(S/281,404,000 al 31 de diciembre de 2024), correspondiente a los envases y cajas retornables
+entregados a los canales de venta, manteniendo una cuenta por cobrar de S/12,298,000 por este
+concepto (S/14,476,000 al 31 de diciembre de 2024).
+El pasivo por depósitos en garantía corresponde al stock necesario de cajas y envases retornables
+que mantienen los canales de venta para efectos de la comercialización de los productos, pasivo que
+será liquidado parcial o totalmente cuando se reduzca el nivel de operaciones o cese la relación
+comercial con el canal de venta. La porción corriente corresponde a las ampliaciones de crédito y por
+lo tanto mayores niveles de cajas y envases retornables que se otorgan a los canales de venta como
+consecuencia del incremento de ventas por las fiestas de fin de año o eventos especiales y que serán
+devueltos al Grupo una vez culminados los eventos. La gerencia ha ejercido un juicio crítico en la
+presentación de este pasivo como pasivo no corriente (Nota 4.2).
+(c) Provisión por descuentos a clientes -
+Este rubro está conformado por los diversos programas de descuento que tiene el Grupo a favor de
+sus clientes, los mismos que se calculan en función al cumplimiento de metas mensuales o anuales
+de volumen, desafíos, visibilidad y otros.
+18 PROVISIONES
+Este rubro comprende:
+Demandas Otras
+legales provisiones Total
+S/000 S/000 S/000
+Al 1 de enero de 2024 46,727 117,884 164,611
+Aplicaciones durante el año (6,384) (67,060) (73,444)
+Al 31 de diciembre de 2024 40,343 50,824 91,167
+Adiciones del año 15,991 2,444 18,435
+Aplicaciones durante el año (18,285) (7,481) (25,766)
+Al 31 de diciembre de 2025 38,049 45,787 83,836
+Menos:
+Porción no corriente (25,549) (39,987) (65,536)
+Porción corriente 12,500 5,800 18,300
+El siguiente cuadro revela el calendario esperado de las salidas de beneficios económicos de las
+provisiones:
+2025 2024
+S/000 S/000
+Menos de 1 año 18,300 15,978
+Entre 2 y 5 años 65,536 75,189
+83,836 91,167
+Provisiones por demandas legales -
+Estas provisiones corresponden al valor estimado para hacer frente a ciertas demandas legales que
+se han originado en el curso normal de los negocios en contra de la Compañía o sus subsidiarias. En
+opinión de la Gerencia y de sus asesores legales, el resultado final de estas demandas no
+representará ninguna pérdida significativamente mayor a los montos provisionados a la fecha.
+- 51 -

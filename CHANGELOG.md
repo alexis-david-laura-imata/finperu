@@ -1,5 +1,20 @@
 # Cambios
 
+## 0.2.2 — 2026-11-08
+Resultado de la auditoría de BBVA Perú 2025 y Backus 2025.
+- **Kd desde la nota del PDF en más formatos**: notas con saldo total por año (sin columnas corriente /
+  no corriente), tasas en sub-notas (promedio ponderado por saldo de cada préstamo), tasas en la redacción
+  ("bonos subordinados … entre 6.2% y 6.5%") y préstamos a "SOFR + margen" (se usa SOFR de cierre de la
+  NY Fed). BBVA 2025: Kd 5.59% desde la nota 13 (antes 6.36% aproximado). Backus 2025: Kd 6.85% desde la
+  nota 15 (antes 13.37% aproximado, que incluía comisiones bancarias).
+- Filas sin tasa revelada usan el promedio de las tasas que la misma nota da para ese tipo; el margen sobre
+  SOFR/VAC nunca se toma como si fuera la tasa.
+- **Bancos**: beta apalancada de la industria de Damodaran (sin Hamada, porque el D/E de Damodaran para
+  bancos no es comparable con los adeudos); NOPAT suma los intereses de adeudos (ya están en el WACC);
+  nuevo enfoque del accionista: ROE y EVA del accionista = (ROE − Ke) × patrimonio promedio.
+- La nota de la deuda en la hoja CPPC indica las cuentas reales usadas (antes decía que no incluía
+  arrendamientos, lo que no era cierto para empresas como Backus).
+
 ## 0.2.1 — 2026-11-08
 - **Corregido**: bancos y otras empresas financieras (p.ej. BANCO BBVA PERU) fallaban con
   "unsupported operand type(s) for +: 'NoneType' and 'NoneType'". La SMV usa planes de cuentas distintos

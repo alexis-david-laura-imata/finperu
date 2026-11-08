@@ -1,0 +1,215 @@
+Notas a los estados financieros consolidados
+(continuación)
+13. Adeudos y obligaciones financieras
+A continuación, se presenta el detalle del rubro:
+2025 2024
+S/(000) S/(000)
+Adeudos y obligaciones financieras:
+Instituciones financieras del exterior (a) 1,916,063 1,903,982
+Organismos financieros internacionales (b) 1,546,980 1,355,040
+Fondo Mivivienda - Sistema Financiero Local (c) 1,255,606 1,111,639
+Corporación Financiera de Desarrollo – COFIDE (d) 885,594 1,344,428
+Intereses devengados por pagar 40,539 39,693
+__________ __________
+5,644,782 5,754,782
+__________ __________
+Valores y títulos (e):
+Bonos subordinados 1,340,828 1,444,544
+Bonos corporativos 822,600 150,000
+Certificados de depósitos negociables 85,429 -
+Intereses devengados por pagar 23,891 6,984
+__________ __________
+2,272,748 1,601,528
+__________ __________
+7,917,530 7,356,310
+__________ __________
+Ciertos contratos de préstamo incluyen cláusulas estándar referentes al cumplimiento de ratios
+financieros, al uso de los fondos y otros asuntos administrativos. En opinión de la Gerencia, al 31 de
+diciembre de 2025 y de 2024, estas cláusulas están siendo cumplidas de manera adecuada en todos sus
+aspectos y no representan ninguna restricción a las operaciones del Grupo BBVA Perú.
+Al 31 de diciembre de 2025 y de 2024, el Banco mantiene un saldo de S/28 millones que
+corresponden a gastos de emisión diferidos de bonos y adeudos.
+51Notas a los estados financieros consolidados
+(continuación)
+(a) Al 31 de diciembre de 2025 y de 2024, el Banco mantiene los siguientes adeudos pactados con instituciones financieras del exterior:
+_________________________2_0__2_5_ ________________________ _________________________2_0__2_4_ ________________________ Vencim iento
+US$(000) S/(000) Tasa US$(000) S/(000) Tasa
+BBVA S.A. (i) 200,000 672,600 3.18% 200,000 752,800 3.18% Febrero 2031
+China Development Bank 180,000 605,340 SOFR + 1.37% 180,000 677,520 SOFR + 1.37% Diciembre 2026
+ICO - Instituto de crédito 54,381 182,883 SOFR + 0.64% 54,381 204,690 SOFR + 0.64% Marzo 2030
+ICO - Instituto de crédito 41,544 139,713 SOFR + 0.67% 41,544 156,372 SOFR + 0.67% Abril 2031
+ICO - Instituto de crédito 29,915 100,604 SOFR + 0.81% 29,915 112,600 SOFR + 0.81% Julio 2030
+ICO - Instituto de crédito 24,160 81,250 SOFR + 0.63% - - Setiembre 2029
+ICO - Instituto de crédito 23,605 79,384 SOFR + 0.47% - - Enero 2028
+ICO - Instituto de crédito 16,143 54,289 SOFR + 0.37% - - Diciembre 2027
+____________ ____________ ____________ ____________
+569,748 1,916,063 505,840 1,903,982
+____________ ____________ ____________ ____________
+Intereses devengados por pagar 8,811 29,632 8,577 32,284
+____________ ____________ ____________ ____________
+578,559 1,945,695 514,417 1,936,266
+____________ ____________ ____________ ____________
+(i) Corresponde a un préstamo subordinado en moneda extranjera por US$200 millones pactado a una tasa de interés anual de 3.18% por los primeros 5 años, por los años restantes se fijará una
+nueva tasa con vencimiento en febrero de 2031. Dicho préstamo computa como patrimonio efectivo de nivel 2.
+52Notas a los estados financieros consolidados
+(continuación)
+(b) Al 31 de diciembre de 2025 y de 2024, el Banco mantiene los siguientes préstamos con Organismos Financieros Internacionales:
+_________________________2_0__2_5_ ________________________ _________________________2_0__2_4_ ________________________ Vencim iento
+US$(000) S/(000) Tasa US$(000) S/(000) Tasa
+International Finance Corporation (i) 150,000 504,450 SOFR + 1.65% 150,000 564,600 SOFR + 1.65% Junio 2029
+International Finance Corporation (i) 100,000 336,300 SOFR + 1.55% 100,000 376,400 SOFR + 1.55% Abril 2030
+Japan International Cooperation Agency 100,000 336,300 SOFR + 1.35% - - Marzo 2032
+International Finance Corporation (i) 60,000 201,780 3.11% 60,000 225,840 3.11% Diciembre 2027
+Japan International Cooperation Agency (i) 50,000 168,150 SOFR + 1.35% 50,000 188,200 SOFR + 1.35% Marzo 2032
+____________ ____________ ____________ ____________
+460,000 1,546,980 360,000 1,355,040
+____________ ____________ ____________ ____________
+Intereses devengados por pagar 2,916 9,805 1,619 6,093
+____________ ____________ ____________ ____________
+462,916 1,556,785 361,619 1,361,133
+____________ ____________ ____________ ____________
+(i) Al 31 de diciembre de 2025, los flujos de efectivo de los adeudos por US$150 millones, US$100 millones, US$60 millones y US$50 millones, cuentan con una cobertura a través de un “swap
+de moneda – CCS” (Al 31 de diciembre de 2024, los flujos de efectivo de los adeudos por US$150 y US$60 millones cuentan con cobertura a través de un “swap de moneda - CCS”) (Nota
+8(ii)).
+(c) Corresponde a recursos obtenidos del Fondo Mivivienda para el otorgamiento de préstamos cuya finalidad es el financiamiento para la adquisición de viviendas cuyo saldo al 31 de diciembre de 2025 y
+2024 en moneda nacional es de S/1,208 millones y S/1,089 millones, respectivamente. Al 31 de diciembre de 2025, estos préstamos devengan intereses a una tasa efectiva anual en soles de 6.25%
+sobre el principal y cuenta con vencimientos hasta diciembre de 2045 (al 31 de diciembre de 2024 devenga intereses a una tasa efectiva anual en soles de 6.25% sobre el principal más el Valor de
+Actualización Constante (VAC) y cuenta con vencimientos hasta diciembre de 2044).
+Al 31 de diciembre de 2025 y 2024, los adeudos con Fondo MIVIVIENDA están garantizados con cartera crediticia hipotecaria hasta por S/1,208 millones y S/1,089 millones respectivamente (nota 7
+(d)). Estos préstamos incluyen acuerdos específicos sobre cómo deben ser usados los fondos, las condiciones financieras que el prestatario final debe mantener, así como otros asuntos administrativos.
+(d) Al 31 de diciembre del 2025 y de 2024, corresponden a adeudos para financiar los créditos del Programa Impulso MyPerú por S/886 millones y S/ 1,344 millones, respectivamente y cuentan con
+garantía de cartera crediticia hasta por dicho importe. Estos adeudos devengan intereses a tasas anuales que fluctúan entre 5.95% y 7.28% y cuentan con un vencimiento hasta diciembre de 2029, para
+ambos periodos. (nota 7(g)).
+53Notas a los estados financieros consolidados
+(continuación)
+(e) Al 31 de diciembre de 2025 y de 2024, los valores y títulos comprenden lo siguiente:
+Importe autorizado Monto Original
+por programa Moneda Colocado 2025 2024 Vencimiento
+S/(000) S/(000)
+Certificados de Depósito Negociables
+era emisión serie A - Cuarto programa (i) USD 200 millones PEN 85,429 85,429 - Agosto 2026
+____________ ____________
+85,429 -
+____________ ____________
+Bonos corporativos
+2da emisión serie A - Quinto programa USD 250 millones PEN 150,000 150,000 150,000 Diciembre 2026
+Emisión internacional - Variable Rate Global Bond due
+2030 (ii) USD 200 millones USD 200,000 672,600 - Enero 2030
+____________ ____________
+822,600 150,000
+____________ ____________
+Bonos subordinados
+USD 50 millones ó
+3ra emisión serie A - Primer programa S/ 158 millones PEN 55,000 100,544 99,186 Junio 2032
+2da emisión serie A - Segundo programa PEN 50,000 89,517 88,309 Noviembre 2032
+3ra emisión serie A - Segundo programa USD 100 millones USD 20,000 67,260 75,280 Febrero 2028
+6ta emisión serie A - Segundo programa PEN 30,000 50,281 49,602 Diciembre 2033
+Emisión internacional - Subordinated Notes due 2034 (iii) USD 300 millones USD 300,000 1,033,226 1,132,167 Junio 2034
+____________ ____________
+1,340,828 1,444,544
+____________ ____________
+Intereses devengados por pagar 23,891 6,984
+____________ ____________
+2,272,748 1,601,528
+____________ ____________
+(i) En agosto de 2025, el Banco realizó una emisión de Certificado de Depósitos Negociables por un monto nominal de S/85 millones, a una tasa 4.38%, con vencimiento en
+agosto de 2026.
+(ii) En enero de 2025, el Banco realizó una emisión internacional de bonos sociales por un monto nominal de US$100 millones, a una tasa de interés de SOFR + 1.35%, con
+vencimiento en enero de 2030. En septiembre de 2025, el Banco efectuó una reapertura por US$100 millones adicionales. Esta emisión tiene una cobertura de flujo de
+efectivo a través de “swaps de monedas – CCS” (Nota 8 (ii)).
+(iii) En marzo de 2024, el Banco realizó una emisión internacional de bonos subordinados por un monto nominal de US$300 millones, a una tasa fija anual de 6.2%, con
+vencimiento en junio de 2034; el pago del principal será efectuado en su totalidad al vencimiento. Esta emisión cuenta con una cobertura contable a valor razonable a través
+de un “swap de tasa de interés – IRS”, que ha generado pérdidas acumuladas por S/24 millones al 31 de diciembre de 2025 (S/3 millones de pérdidas acumuladas al 31 de
+diciembre de 2024) (ver Nota 8(i)).
+Al 31 de diciembre de 2025, los bonos corporativos no cuentan con garantías específicas y devengan intereses a tasas anuales en moneda nacional de 7.47% y en dólares estadounidenses
+de SOFR + 1.35% (al 31 de diciembre de 2024 devenga intereses a una tasa anual en moneda nacional de 7.47%).
+Al 31 de diciembre de 2025 y de 2024, los bonos subordinados han sido emitidos de acuerdo con lo establecido en la Ley General, y devengan intereses a tasas anuales que fluctúan entre
+el VAC (Valor de actualización constante) más un “spread” para moneda nacional, y entre 6.2% y 6.5% para moneda extranjera.
+54Notas a los estados financieros consolidados
+(continuación)
+14. Cuentas por pagar, provisiones y otros pasivos
+A continuación, se presenta el detalle del rubro:
+2025 2024
+S/(000) S/(000)
+Cuentas por pagar
+Instrumentos financieros
+Pactos de recompra con el BCRP (a) 1,015,857 2,783,167
+Cuentas por pagar proveedores 987,605 1,065,554
+Dividendos, participaciones y remuneraciones por pagar 173,947 120,792
+Cuentas por pagar diversas (b) 172,634 485,562
+Primas al Fondo de Seguro de Depósitos 31,303 29,876
+Intereses por pagar 17,448 69,653
+____________ ____________
+Cuentas por pagar, nota 30 2,398,794 4,554,604
+____________ ____________
+Instrumentos no financieros
+Aportes y obligaciones con instituciones recaudadoras de tributos 282,026 460,573
+____________ ____________
+Total cuentas por pagar 2,680,820 5,015,177
+____________ ____________
+Provisiones
+Provisiones laborales y otros 889,287 854,538
+Provisión para litigios, demandas y contingencias diversas (c) 377,460 379,871
+Provisión para créditos contingentes (d) 266,432 259,010
+____________ ____________
+1,533,179 1,493,419
+____________ ____________
+Otros pasivos
+Operaciones en trámite (e) 559,445 2,736,950
+Ingresos diferidos y otros 103,062 74,205
+____________ ____________
+662,507 2,811,155
+____________ ____________
+4,876,506 9,319,751
+____________ ____________
+(a) Al 31 de diciembre de 2025, el saldo incluye principalmente (i) las operaciones de reporte de
+valores por S/741 millones, estas operaciones tienen vencimiento hasta febrero de 2026 y
+devengan intereses a tasas anuales que fluctúan entre 4.61% y 4.68% y (ii) las operaciones de
+reporte de divisa por S/275 millones, estas operaciones tienen vencimiento hasta febrero de
+2026 y devengan intereses a tasas anuales que fluctúan entre 4.54% y 4.68% (Nota 5(c)).
+Al 31 de diciembre de 2024, correspondía a operaciones de reporte de cartera de créditos
+reprogramados por S/2,220 millones y operaciones de reporte de cartera crediticia del Programa
+Reactiva Perú por S/563 millones. Las operaciones de reporte de cartera crediticia
+reprogramada tuvieron vencimiento hasta septiembre de 2025 y devengaron intereses a tasas
+anuales que fluctúan entre 0.50% y 3.50%; las operaciones de reporte de cartera crediticia del
+Programa Reactiva Perú tuvieron vencimiento hasta diciembre de 2025 y devengaron intereses a
+tasas anuales del 0.50%.
+55Notas a los estados financieros consolidados
+(continuación)
+(b) Al 31 de diciembre de 2025, el saldo incluye principalmente S/40 millones por seguros por
+cuenta de prestatarios (S/17 millones al 31 de diciembre de 2024) y S/14 millones por
+operaciones de ventas en corto (S/308 millones al 31 de diciembre de 2024).
+(c) El Grupo BBVA Perú tiene pendientes diversas demandas judiciales, litigios y otros procesos que
+están relacionados con las actividades que desarrolla, y que en opinión de la Gerencia y de sus
+asesores legales no resultarán en pasivos adicionales a los registrados.
+(d) El movimiento de la provisión para créditos indirectos (contingentes) se muestra a continuación:
+2025 2024
+S/(000) S/(000)
+Saldo al 1 de enero 259,010 267,159
+Provisión 117,524 119,857
+Recuperaciones y reversiones (92,747) (129,715)
+Diferencia de cambio y otros ajustes (17,303) 1,709
+__________ __________
+266,484 259,010
+__________ __________
+El saldo de la provisión para incobrabilidad de créditos indirectos se compone de lo siguiente:
+2025 2024
+S/(000) S/(000)
+Específica 127,023 125,646
+Genérica 127,282 117,298
+Provisión por riesgo país 12,179 16,066
+__________ __________
+Saldos al 31 de diciembre 266,484 259,010
+__________ __________
+(e) Las operaciones en trámite están referidas principalmente a transacciones efectuadas los últimos
+días del mes, que son reclasificadas al mes siguiente a las cuentas definitivas del estado
+consolidado de situación financiera; estas transacciones no afectan los resultados del Grupo
+BBVA Perú. Al 31 de diciembre de 2025, las operaciones en trámite pasivas incluyen
+principalmente S/261 millones relacionados con operaciones de tesorería (S/2,304 millones al
+31 de diciembre de 2024).
+15. Patrimonio
+(a) Capital social -
+Al 31 de diciembre de 2025 y de 2024, el capital social del Banco autorizado, suscrito y pagado
+está representado por 9,649,414 y 8,894,852 miles de acciones comunes en circulación con un
+valor nominal de un Sol (S/1.00) por acción, respectivamente.
+56

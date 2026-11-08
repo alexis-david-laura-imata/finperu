@@ -261,6 +261,9 @@ function mostrarResultados(r) {
   const x = r.resultados;
   const kpis = [["WACC", pct(x.wacc)], ["Ke", pct(x.ke)], ["Kd", pct(x.kd)], ["ROIC", pct(x.roic)],
     ["EVA (miles S/)", miles(x.eva)], ["Beta apalancada", x.beta_l.toFixed(4)]];
+  if (x.roe !== undefined) {   // bancos: enfoque del accionista
+    kpis.push(["ROE", pct(x.roe)], ["EVA del accionista (miles S/)", miles(x.eva_accionista)]);
+  }
   $("#kpis").innerHTML = kpis.map(([a, b]) => `<div class="kpi"><p class="kpi__etiqueta">${a}</p><p class="kpi__valor">${b}</p></div>`).join("");
   $("#controles").innerHTML = r.controles.map((c) =>
     `<li class="${c.ok ? "ok" : "mal"}">${c.ok ? "✔" : "✖"} ${esc(c.control)} <span class="ayuda">(${esc(c.detalle)})</span></li>`).join("");
